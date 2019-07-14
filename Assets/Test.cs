@@ -115,6 +115,7 @@ public class LineInterpretor : Interpretor
     Vector3 _currentPosition;
     float _lineLength;
     float _lineLengthScaleFactor;
+    Bounds _bounds;
 
     public struct DrawState
     {
@@ -200,17 +201,21 @@ public class LineInterpretor : Interpretor
 
         Vector3 origin = _savedPositions.Count != 0 ? _savedPositions.Peek().Position : _origin;
         _lineManager.CreateInterpolatedLine(_savedPositions.Count, origin, start, end);
+
+        _bounds.Encapsulate(start);
+        _bounds.Encapsulate(end);
     }
 
     public void Reset()
     {
-        _origin = new Vector3(-7f, -3f, 0f);
+        _origin = Vector3.zero;
         _currentPosition = _origin;
         _currentAngle = 0f;
         _lineLength = 5f;
         _lineLengthScaleFactor = 0.7f;
         _lineManager.Clear();
         _savedPositions.Clear();
+        _bounds = new Bounds();
     }
 
     public override void Execute(ASystem system)
@@ -219,6 +224,8 @@ public class LineInterpretor : Interpretor
         //_lineManager.ExpandLine();
         _lineManager.ExpandLineId();
     }
+
+    public Bounds CameraBounds { get { return _bounds; } }
 }
 
 public class ASystem
@@ -232,7 +239,6 @@ public class ASystem
         _systemData = null;
     }
 
-    // TODO add the depth in param to solve from 0 to depth
     public virtual void Solve()
     {
         string prevSystem = _currentState;
@@ -341,6 +347,15 @@ public class Test : MonoBehaviour
             _system.DisplayCurrentState();
             _interpretor.Reset();
             _interpretor.Execute(_system);
+
+            Bounds bounds = _interpretor.CameraBounds;
+            
+            float xCenter = bounds.min.x + (Mathf.Abs(bounds.max.x - bounds.min.x) / 2f);
+            float yCenter = bounds.min.y + (Mathf.Abs(bounds.max.y - bounds.min.y) / 2f);
+
+            float height = 90f / Camera.main.fieldOfView * (bounds.max.y - bounds.center.y) * 1.2f;
+ 
+            Camera.main.transform.position = new Vector3(bounds.center.x, bounds.center.y, -height);
         }
     }
 }
