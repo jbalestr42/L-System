@@ -101,7 +101,7 @@ public class LineManager : MonoBehaviour
     IEnumerator ExpandLineIdCor(int id)
     {
         float timer = 0f;
-        float timerMax = 1f;
+        float timerMax = 0.1f;
         if (_interpolatedLinesId.ContainsKey(id))
         {
             while (timer < timerMax)

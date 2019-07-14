@@ -116,23 +116,27 @@ public class LineInterpretor : Interpretor
     float _lineLength;
     float _lineLengthScaleFactor;
     Bounds _bounds;
+    int _segmentCount;
 
     public struct DrawState
     {
         public Vector3 _position;
         public float _angle;
         public float _lineLength;
+        public int _segmentCount;
 
-        public DrawState(Vector3 position, float angle, float lineLength)
+        public DrawState(Vector3 position, float angle, float lineLength, int segmentCount)
         {
             _position = position;
             _angle = angle;
             _lineLength = lineLength;
+            _segmentCount = segmentCount;
         }
 
         public Vector3 Position { get { return _position; } }
         public float Angle { get { return _angle; } }
         public float LineLength { get { return _lineLength; } }
+        public int SegmentCount { get { return _segmentCount; } }
     }
     Stack<DrawState> _savedPositions;
 
@@ -165,7 +169,7 @@ public class LineInterpretor : Interpretor
     
     void SaveDrawState(ASystem system)
     {
-        _savedPositions.Push(new DrawState(_currentPosition, _currentAngle, _lineLength));
+        _savedPositions.Push(new DrawState(_currentPosition, _currentAngle, _lineLength, _segmentCount));
     }
     
     void RestoreDrawState(ASystem system)
@@ -174,6 +178,7 @@ public class LineInterpretor : Interpretor
         _currentPosition = drawState.Position;
         _currentAngle = drawState.Angle;
         _lineLength = drawState.LineLength;
+        _segmentCount = drawState.SegmentCount;
     }
     
     void MultiplyLineLength(ASystem system)
@@ -200,10 +205,12 @@ public class LineInterpretor : Interpretor
         _currentPosition = end;
 
         Vector3 origin = _savedPositions.Count != 0 ? _savedPositions.Peek().Position : _origin;
-        _lineManager.CreateInterpolatedLine(_savedPositions.Count, origin, start, end);
+
+        _lineManager.CreateInterpolatedLine(_segmentCount, start, start, end);
 
         _bounds.Encapsulate(start);
         _bounds.Encapsulate(end);
+        _segmentCount++;
     }
 
     public void Reset()
@@ -216,6 +223,7 @@ public class LineInterpretor : Interpretor
         _lineManager.Clear();
         _savedPositions.Clear();
         _bounds = new Bounds();
+        _segmentCount = 0;
     }
 
     public override void Execute(ASystem system)
