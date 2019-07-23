@@ -326,10 +326,12 @@ public class Test : MonoBehaviour
         
         _interpretor = new LineInterpretor();
         
-        systemData = new SystemData("FF+[+F-F-F]-[-F+F+F]", 22.5f, 2f);
-        systemData.AddRule(new Rule('F', "FF+[+F-F-F]-[-F+F+F]"));
+        // Test tree
+        systemData = new SystemData("F", 45f, 3f);
+        systemData.AddRule(new Rule('F', "F[+F]FF"));
         TreeSystem s = new TreeSystem();
         s.Data = systemData;
+        //s.Solve();
         s.DisplayCurrentState();
     }
 

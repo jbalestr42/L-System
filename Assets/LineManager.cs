@@ -80,6 +80,12 @@ public class LineManager : MonoBehaviour
 
     public void ExpandLineId()
     {
+        int count = 0;
+         foreach (KeyValuePair<int, List<InterpolatedLine>> interpolatedLine in _interpolatedLinesId)
+        {
+            count += interpolatedLine.Value.Count;
+        }
+        Debug.Log("Interpoling " + count + " lines.");
         StartCoroutine(ExpandLineIdCor(0));
     }
 

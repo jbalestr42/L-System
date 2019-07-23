@@ -4,7 +4,37 @@ using UnityEngine;
 
 public class TreeSystem
 {
-    TreeNode<string> _root;
+    public class Node
+    {
+        static int idGenerator = 0;
+        int id;
+        public char s;
+
+        public Node(char v)
+        {
+            id = idGenerator;
+            idGenerator++;
+            s += v;
+        }
+
+        public void Set(char v)
+        {
+            s = v;
+        }
+
+        public char value
+        { 
+            get { return s; }
+            set { s = value; }
+        }
+
+        public int Id
+        { 
+            get { return id; }
+        }
+    }
+
+    TreeNode<Node> _root;
     SystemData _systemData;
     int _depth;
 
@@ -19,7 +49,7 @@ public class TreeSystem
     {
         if (_root != null)
         {
-            _root.Traverse(SolveTree);
+            //_root.Traverse(SolveTree);
         }
         _depth++;
     }
@@ -28,65 +58,74 @@ public class TreeSystem
     {
         if (_root != null)
         {
-            _root.Traverse(Display);
+            string s = "";
+            Display(ref s, _root);
+            Debug.Log(s);
         }
     }
 
-    public void Display(TreeNode<string> node)
+    public void Display(ref string outGraph, TreeNode<Node> node, int depth = 0)
     {
-        Debug.Log(node.Value);
+        foreach (TreeNode<Node> child in node.Children)
+        {
+            outGraph += node.Value.Id + " " + child.Value.Id + "\n";
+            Display(ref outGraph, child, depth + 1);
+        }
     }
 
-    public TreeNode<string> CreateTreeNode(string state, int index = 0)
+    void AddNode(ref TreeNode<Node> root, ref TreeNode<Node> current, TreeNode<Node> value)
     {
-        TreeNode<string> node = new TreeNode<string>("");
+        if (root == null)
+        {
+            root = value;
+            current = root;
+        }
+        else
+        {
+            current.AddChild(value);
+        }
+    }
+
+    public TreeNode<Node> CreateTree(string state, int index = 0)
+    {
+        TreeNode<Node> root = null;
+        TreeNode<Node> current = null;
         for (int i = index; i < state.Length; i++)
         {
             if (state[i] == '[')
             {
                 i++;
-                node.AddChild(CreateTreeNode(state, i));
+                TreeNode<Node> tree = CreateTree(state, i);
+                AddNode(ref root, ref current, tree);
                 while (state[i] != ']') i++;
             }
             else if (state[i] == ']')
             {
-                return node;
+                break;
             }
-            else
+            else if (state[i] != '+' && state[i] != '-')
             {
-                node.Value += state[i];
+                TreeNode<Node> value = new TreeNode<Node>(new Node(state[i]));
+                AddNode(ref root, ref current, value);
+                current = value;
             }
         }
-        return node;
+        return root;
     }
 
-    public void SolveTree(TreeNode<string> node)
+    public TreeNode<Node> Iterate(TreeNode<Node> node)
     {
-        for (int i = 0; i < node.Value.Length; i++)
+        Rule rule = _systemData.Rules.Find(r => r.Sign == node.Value.value);
+
+        string s = rule != null ? rule.Result : node.Value.value.ToString();
+        TreeNode<Node> root = CreateTree(s);// We need the last element
+
+        foreach (TreeNode<Node> child in node.Children)
         {
-            if (node.Value[i] == '[')
-            {
-                //node.AddChild
-            }
-            else if (node.Value[i] == ']')
-            {
-
-            }
-            else
-            {
-                Rule rule = _systemData.Rules.Find(r => r.Sign == node.Value[i]);
-
-                if (rule != null)
-                {
-                    node.Value = rule.Result;
-                }
-                else
-                {
-                    node.Value = rule.Result;
-                    //_currentState += prevSystem[i];
-                }
-            }
+            root.AddChild(Iterate(child)); // here add at the last not the root
         }
+
+        return root;
     }
 
     public SystemData Data
@@ -95,10 +134,10 @@ public class TreeSystem
         set 
         {
             _systemData = value;
-            _root = CreateTreeNode(_systemData.Axiom);
+            _root = CreateTree(_systemData.Axiom);
             _depth = 0;
         } 
     }
-    public TreeNode<string> CurrentState { get { return _root; } }
+    public TreeNode<Node> CurrentState { get { return _root; } }
     public float Depth { get { return _depth; } }
 }
