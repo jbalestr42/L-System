@@ -75,9 +75,9 @@ public class TreeSystem
     public void DisplayCurrentState()
     {
         string s = "";
+        Debug.Log("Root: " + _tree.start.Value.Type);
+        Debug.Log("End: " + _tree.end.Value.Type);
         Display(ref s, _tree.start);
-        Debug.Log("Root: " + _tree.start.Value.value);
-        Debug.Log("End: " + _tree.end.Value.value);
         Debug.Log(s);
     }
 
@@ -123,7 +123,6 @@ public class TreeSystem
                 i++;
                 TreeNode<Node> tree = CreateTree(null, state, ref i);
                 AddNode(ref root, ref current, tree);
-                i++;
             }
             else if (state[i] == ']')
             {
@@ -144,25 +143,61 @@ public class TreeSystem
         if (treeData != null)
         {
             treeData.start = root;
-            treeData.start.Value.Type = ENodeType.Root;
             treeData.end.Value.Type = ENodeType.End;
+            treeData.start.Value.Type = ENodeType.Root; // Set root after in case of the start is the same node as the end (tree with only one node)
         }
         return root;
     }
 
-    public TreeNode<Node> Iterate(TreeData<Node> tree)
+    public void Iterate()
     {
-        Rule rule = _systemData.Rules.Find(r => r.Sign == tree.start.Value.value);
+        TreeData<Node> newTree = new TreeData<Node>();
+        Iterate(newTree, _tree.start);
+        _tree = newTree;
+    }
 
-        string s = rule != null ? rule.Result : tree.start.Value.value.ToString();
-        TreeNode<Node> root = null;// = CreateTree(tree, s);// We need the last element
+    public TreeNode<Node> Iterate(TreeData<Node> newTree, TreeNode<Node> currentNode)
+    {
+        Rule rule = _systemData.Rules.Find(r => r.Sign == currentNode.Value.value);
 
-        foreach (TreeNode<Node> child in tree.start.Children)
+        string s = rule != null ? rule.Result : currentNode.Value.value.ToString();
+        
+        int i = 0;
+        TreeData<Node> tree = new TreeData<Node>();
+        CreateTree(tree, s, ref i);
+        
+        // TODO if only one node in the tree
+        if (currentNode.Value.Type == ENodeType.Leaf)
         {
-  //          root.AddChild(Iterate(child)); // here add at the last not the root
+            tree.start.Value.Type = ENodeType.Branch;
+            tree.end.Value.Type = ENodeType.Leaf;
+        }
+        else if (currentNode.Value.Type == ENodeType.Branch)
+        {
+            tree.start.Value.Type = ENodeType.Branch;
+            tree.end.Value.Type = ENodeType.Branch;
+        }
+        else if (currentNode.Value.Type == ENodeType.Root)
+        {
+            tree.end.Value.Type = ENodeType.Branch;
+            tree.start.Value.Type = ENodeType.Root;
+            newTree.start = tree.start;
+        }
+        else if (currentNode.Value.Type == ENodeType.End)
+        {
+            tree.start.Value.Type = ENodeType.Branch;
+            tree.end.Value.Type = ENodeType.End;
+            newTree.end = tree.end;
         }
 
-        return root;
+        // Il faut merger le start et end du tree suivant ? je crois pas
+
+        foreach (TreeNode<Node> child in currentNode.Children)
+        {
+            tree.end.AddChild(Iterate(newTree, child)); // here add at the last not the root
+        }
+
+        return tree.start;
     }
 
     public SystemData Data

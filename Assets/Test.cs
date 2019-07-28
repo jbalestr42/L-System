@@ -317,7 +317,7 @@ public class Test : MonoBehaviour
         systemData.AddRule(new Rule('f', "ffffff"));
         _systemData.Add(systemData);
 
-        systemData = new SystemData("", 45f, 3f);
+        systemData = new SystemData("F", 45f, 3f);
         systemData.AddRule(new Rule('F', "F[+F]FF"));
         _systemData.Add(systemData);
 
@@ -327,11 +327,12 @@ public class Test : MonoBehaviour
         _interpretor = new LineInterpretor();
         
         // Test tree
-        systemData = new SystemData("FF+[+F-F[+FF]-F]-F[-F+F+F]", 45f, 3f);
-        systemData.AddRule(new Rule('F', "F[+F]FF"));
+        systemData = new SystemData("FF", 45f, 3f);
+        systemData.AddRule(new Rule('F', "F[+F]F"));
         TreeSystem s = new TreeSystem();
         s.Data = systemData;
-        //s.Solve();
+        s.DisplayCurrentState();
+        s.Iterate();
         s.DisplayCurrentState();
     }
 
