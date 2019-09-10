@@ -45,16 +45,16 @@ public class TokenSystem : ALSystem
 
     public override void NextGeneration()
     {
-        Token prevSystem = _root[_root.Count - 1];
+        Token prevGeneration = _root[_root.Count - 1];
         Token start = null;
         Token last = null;
 
-        while (prevSystem != null)
+        while (prevGeneration != null)
         {
-            Rule rule = _systemData.Rules.Find(r => r.Sign == prevSystem.Sign);
-            string input = rule != null ? rule.Result : prevSystem.Sign.ToString();
+            Rule rule = _systemData.Rules.Find(r => r.Sign == prevGeneration.Sign);
+            string input = rule != null ? rule.Result : prevGeneration.Sign.ToString();
 
-            Token tmp = GenerateTokens(prevSystem, input);
+            Token tmp = GenerateTokens(prevGeneration, input);
             if (start == null)
             {
                 start = tmp;
@@ -70,7 +70,7 @@ public class TokenSystem : ALSystem
             }
             last = tmp;
 
-            prevSystem = prevSystem.Next;
+            prevGeneration = prevGeneration.Next;
         }
         _root.Add(start);
     }

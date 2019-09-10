@@ -1,64 +1,67 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace Oisif
 {
 
 public class StringSystem : ALSystem
 {
-    string _currentState;
-    int _depth;
+    List<string> _state;
 
     public StringSystem()
     {
+        _state = new List<string>();
     }
 
     public override void ForEach(SystemSignAction action)
     {
         if (action != null)
         {
-            for (int i = 0; i < _currentState.Length; i++)
+            string currentState = _state[_state.Count - 1];
+            for (int i = 0; i < currentState.Length; i++)
             {
-                action(_currentState[i]);
+                action(currentState[i]);
             }
         }
     }
 
     public override void NextGeneration()
     {
-        string prevSystem = _currentState;
-        _currentState = "";
-        for (int i = 0; i < prevSystem.Length; i++)
+        string prevGeneration = _state[_state.Count - 1];
+        string newGeneration = "";
+
+        for (int i = 0; i < prevGeneration.Length; i++)
         {
-            Rule rule = Data.Rules.Find(r => r.Sign == prevSystem[i]);
+            Rule rule = Data.Rules.Find(r => r.Sign == prevGeneration[i]);
 
             if (rule != null)
             {
-                _currentState += rule.Result;
+                newGeneration += rule.Result;
             }
             else
             {
-                _currentState += prevSystem[i];
+                newGeneration += prevGeneration[i];
             }
         }
-        _depth++;
+        _state.Add(newGeneration);
     }
 
     public override void DisplayCurrentState()
     {
-        Debug.Log("Current state: " + _currentState);
+        string currentState = _state[_state.Count - 1];
+        Debug.Log("Current state: " + currentState);
     }
 
     public override SystemData Data {
         set {
             base.Data = value;
-            _currentState = Data.Axiom;
-            _depth = 0;
+            _state.Add(Data.Axiom);
         } 
     }
 
     public override int Depth()
     {
-        return _depth;
+        return _state.Count;
     }
 }
 

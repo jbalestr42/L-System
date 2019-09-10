@@ -42,7 +42,7 @@ public class Test : MonoBehaviour
         systemData.AddRule(new Oisif.Rule('F', "F[+F]FF"));
         _systemData.Add(systemData);
 
-        _system = new Oisif.TokenSystem();
+        _system = new Oisif.StringSystem();
         _system.Data = _systemData[_currentIndex];
         
         _interpretor = new Oisif.LineInterpretor();
