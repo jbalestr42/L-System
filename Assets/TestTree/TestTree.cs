@@ -63,7 +63,7 @@ public class TreeSystem
     }
 
     TreeData<Node> _tree;
-    SystemData _systemData;
+    Oisif.SystemData _systemData;
     int _depth;
 
     public TreeSystem()
@@ -128,7 +128,14 @@ public class TreeSystem
             {
                 break;
             }
-            else if (state[i] != '+' && state[i] != '-')
+            else if (state[i] == '+')
+            {
+                // is modifying state (+, -, etc.)
+            }
+            else if (state[i] == '-')
+            {
+            }
+            else // F
             {
                 TreeNode<Node> value = new TreeNode<Node>(new Node(state[i]));
                 AddNode(ref root, ref current, value);
@@ -158,7 +165,7 @@ public class TreeSystem
 
     public TreeNode<Node> Iterate(TreeData<Node> newTree, TreeNode<Node> currentNode)
     {
-        Rule rule = _systemData.Rules.Find(r => r.Sign == currentNode.Value.value);
+        Oisif.Rule rule = _systemData.Rules.Find(r => r.Sign == currentNode.Value.value);
 
         string s = rule != null ? rule.Result : currentNode.Value.value.ToString();
         
@@ -200,7 +207,7 @@ public class TreeSystem
         return tree.start;
     }
 
-    public SystemData Data
+    public Oisif.SystemData Data
     {
         get { return _systemData; }
         set 
@@ -211,4 +218,49 @@ public class TreeSystem
         } 
     }
     public float Depth { get { return _depth; } }
+    public TreeNode<Node> Root { get { return _tree.start; } }
+}
+
+public class TreeLineInterpretor : Oisif.Interpretor
+{
+    LineManager _lineManager;
+    Vector3 _origin;
+    Bounds _bounds;
+
+    public TreeLineInterpretor()
+        :base()
+    {
+        _lineManager = Object.FindObjectOfType<LineManager>();
+
+        Reset();
+    }
+
+    void Draw(TreeSystem system, TreeNode<TreeSystem.Node> node)
+    {
+    /*  Vector3 start = node.Parent == null ? _origin : node.Parent.Value.state.Position;
+        Vector3 end = node.Value.state.Position;
+        
+        _lineManager.CreateLine(start, end);
+        _bounds.Encapsulate(start);
+        _bounds.Encapsulate(end);
+        
+        foreach (TreeNode<TreeSystem.Node> child in node.Children)
+        {
+            Draw(system, child);            
+        }*/
+    }
+
+    public void Reset()
+    {
+        _origin = Vector3.zero;
+        _bounds = new Bounds();
+    }
+
+    public void Execute(TreeSystem system)
+    {
+        TreeNode<TreeSystem.Node> root = system.Root;
+        Draw(system, root);
+    }
+
+    public Bounds CameraBounds { get { return _bounds; } }
 }
