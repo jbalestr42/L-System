@@ -4,29 +4,29 @@ using UnityEngine;
 namespace Oisif
 {
 
-public struct DrawState
+public class StringInterpretor : Interpretor<ALSystem>
 {
-    public Vector3 _position;
-    public float _angle;
-    public float _lineLength;
-    public int _segmentCount;
-    
-    public DrawState(Vector3 position, float angle, float lineLength, int segmentCount)
+    public struct DrawState
     {
-        _position = position;
-        _angle = angle;
-        _lineLength = lineLength;
-        _segmentCount = segmentCount;
+        public Vector3 _position;
+        public float _angle;
+        public float _lineLength;
+        public int _segmentCount;
+    
+        public DrawState(Vector3 position, float angle, float lineLength, int segmentCount)
+        {
+            _position = position;
+            _angle = angle;
+            _lineLength = lineLength;
+            _segmentCount = segmentCount;
+        }
+
+        public Vector3 Position { get { return _position; } set { _position = value; } }
+        public float Angle { get { return _angle; } set { _angle = value; } }
+        public float LineLength { get { return _lineLength; } }
+        public int SegmentCount { get { return _segmentCount; } }
     }
 
-    public Vector3 Position { get { return _position; } set { _position = value; } }
-    public float Angle { get { return _angle; } set { _angle = value; } }
-    public float LineLength { get { return _lineLength; } }
-    public int SegmentCount { get { return _segmentCount; } }
-}
-
-public class LineInterpretor : Interpretor
-{
     LineManager _lineManager;
     float _currentAngle;
     Vector3 _origin;
@@ -37,7 +37,7 @@ public class LineInterpretor : Interpretor
     int _segmentCount;
     Stack<DrawState> _savedPositions;
 
-    public LineInterpretor()
+    public StringInterpretor()
         :base()
     {
         _lineManager = Object.FindObjectOfType<LineManager>();

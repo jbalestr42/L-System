@@ -5,13 +5,10 @@ using UnityEngine;
 public class Test : MonoBehaviour
 {
     List<Oisif.SystemData> _systemData;
-    Oisif.ALSystem _system;
-    Oisif.LineInterpretor _interpretor;
+    Oisif.TokenSystem _system;
+    Oisif.TokenInterpretor _interpretor;
     int _currentIndex = 0;
 
-    TreeSystem _treeSystem;
-    TreeLineInterpretor _treeInterpolator;
-    
     void Start()
     {
         _systemData = new List<Oisif.SystemData>();
@@ -42,19 +39,14 @@ public class Test : MonoBehaviour
         systemData.AddRule(new Oisif.Rule('F', "F[+F]FF"));
         _systemData.Add(systemData);
 
-        _system = new Oisif.StringSystem();
+        _system = new Oisif.TokenSystem();
         _system.Data = _systemData[_currentIndex];
         
-        _interpretor = new Oisif.LineInterpretor();
+        _interpretor = new Oisif.TokenInterpretor();
         
         // Test tree
         systemData = new Oisif.SystemData("FF", 45f, 3f);
         systemData.AddRule(new Oisif.Rule('F', "F[+F]F"));
-        _treeSystem = new TreeSystem();
-        _treeSystem.Data = systemData;
-        _treeSystem.DisplayCurrentState();
-
-        _treeInterpolator = new TreeLineInterpretor();
     }
 
     void Update()
@@ -71,13 +63,6 @@ public class Test : MonoBehaviour
             _currentIndex = _currentIndex < _systemData.Count - 1 ? _currentIndex + 1 : 0;
             _system.Data = _systemData[_currentIndex];
             _interpretor.Reset();
-        }
-
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            _treeSystem.Iterate();
-            _treeInterpolator.Execute(_treeSystem);
-            _treeSystem.DisplayCurrentState();
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
