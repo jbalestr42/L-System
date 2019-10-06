@@ -5,7 +5,7 @@ using UnityEngine;
 public class Test : MonoBehaviour
 {
     List<Oisif.SystemData> _systemData;
-    Oisif.TokenSystem _system;
+    Oisif.LSystem _system;
     Oisif.TokenInterpretor _interpretor;
     int _currentIndex = 0;
 
@@ -13,7 +13,17 @@ public class Test : MonoBehaviour
     {
         _systemData = new List<Oisif.SystemData>();
         
-        Oisif.SystemData systemData = new Oisif.SystemData("YF+XF+YF-XF-YF-XF-YF+XF+YF", 60f, 2f);
+        Oisif.SystemData systemData;
+
+        systemData = new Oisif.SystemData("F", 45f, 3f);
+        systemData.AddRule(new Oisif.Rule('F', "F[+F][-F]"));
+        _systemData.Add(systemData);
+
+        systemData = new Oisif.SystemData("F", 45f, 3f);
+        systemData.AddRule(new Oisif.Rule('F', "F[+F]FF"));
+        _systemData.Add(systemData);
+        
+        systemData = new Oisif.SystemData("YF+XF+YF-XF-YF-XF-YF+XF+YF", 60f, 2f);
         systemData.AddRule(new Oisif.Rule('X', "YF+XF+Y"));
         systemData.AddRule(new Oisif.Rule('Y', "XF-YF-X"));
         _systemData.Add(systemData);
@@ -35,18 +45,10 @@ public class Test : MonoBehaviour
         systemData.AddRule(new Oisif.Rule('f', "ffffff"));
         _systemData.Add(systemData);
 
-        systemData = new Oisif.SystemData("F", 45f, 3f);
-        systemData.AddRule(new Oisif.Rule('F', "F[+F]FF"));
-        _systemData.Add(systemData);
-
-        _system = new Oisif.TokenSystem();
+        _system = new Oisif.LSystem();
         _system.Data = _systemData[_currentIndex];
         
         _interpretor = new Oisif.TokenInterpretor();
-        
-        // Test tree
-        systemData = new Oisif.SystemData("FF", 45f, 3f);
-        systemData.AddRule(new Oisif.Rule('F', "F[+F]F"));
     }
 
     void Update()
@@ -63,6 +65,18 @@ public class Test : MonoBehaviour
             _currentIndex = _currentIndex < _systemData.Count - 1 ? _currentIndex + 1 : 0;
             _system.Data = _systemData[_currentIndex];
             _interpretor.Reset();
+        }
+        
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            _system.NextGeneration();
+            _system.DisplayCurrentState();
+        }
+        
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            _interpretor.Reset();
+            _interpretor.Execute(_system);
         }
 
         if (Input.GetKeyDown(KeyCode.Space))

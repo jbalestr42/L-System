@@ -4,32 +4,94 @@ using UnityEngine;
 namespace Oisif
 {
 
-public class Token
+public class Rule
 {
-    public char Sign = '.';
-    public Token Prev = null;
-    public Token Next = null;
-    public Token Parent = null;
+    char _sign;
+    string _result;
 
-    public Token(char sign, Token parent)
+    public Rule(char sign, string result)
     {
-        Sign = sign;
-        Parent = parent;
+        _sign = sign;
+        _result = result;
+    }
+
+    public char Sign { get { return _sign; } }
+    public string Result { get { return _result; } }
+
+    public virtual bool Match(string currentState, int index)
+    {
+        return (currentState[index] == _sign);
     }
 }
 
-public class TokenSystem : ALSystem
+// TODO Scriptable Object?
+public class SystemData
 {
-    SystemData _systemData;
-    List<Token> _root;
+    public string Axiom { get; }
+    public float Angle { get; }
+    public float DepthFactor { get; }
+    public List<Rule> Rules { get; }
 
-    public TokenSystem()
+    public SystemData(string axiom, float angle, float depthFactor)
     {
-        _systemData = null;
-        _root = new List<Token>();
+        Rules = new List<Rule>();
+        Axiom = axiom;
+        Angle = angle;
+        DepthFactor = depthFactor;
     }
 
-    public override void ForEach(SystemSignAction action)
+    public void AddRule(Rule rule)
+    {
+        Rules.Add(rule);
+    }
+}
+
+public class LSystem
+{
+    public class Token
+    {
+        public char Sign = '.';
+        public Token Prev = null;
+        public Token Next = null;
+        public Token Parent = null;
+        public int DrawableId = 0;
+        public int DrawableIdMax = 0;
+        public int Depth = 0;
+        public int BranchId = 0;
+
+        public Vector3 Start;
+        public Vector3 End;
+
+        public Token(char sign, Token parent, int branchId, int depth)
+        {
+            Sign = sign;
+            Parent = parent;
+            BranchId = branchId;
+            Depth = depth;
+        }
+
+        public override string ToString()
+        {
+            return Sign + "(" + DrawableId + "/" + DrawableIdMax + ") - " + BranchId + " - " + Depth + "\n";
+        }
+    }
+
+    public delegate void SystemSignAction(Token sign);
+    SystemData _systemData;
+
+    List<Token> _root;
+    TokenInterpretor _interpretor;
+    public int _branchId;
+
+    public LSystem()
+    {
+        _interpretor = new TokenInterpretor();
+        _systemData = null;
+        _root = new List<Token>();
+        _branchId = 0;
+    }
+
+    public virtual void ForEach(SystemSignAction action)
     {
         if (action != null)
         {
@@ -37,13 +99,13 @@ public class TokenSystem : ALSystem
 
             while (currentSystem != null)
             {
-                action(currentSystem.Sign);
+                action(currentSystem);
                 currentSystem = currentSystem.Next;
             }
         }
     }
 
-    public override void NextGeneration()
+    public virtual void NextGeneration()
     {
         Token prevGeneration = _root[_root.Count - 1];
         Token start = null;
@@ -52,68 +114,125 @@ public class TokenSystem : ALSystem
         while (prevGeneration != null)
         {
             Rule rule = _systemData.Rules.Find(r => r.Sign == prevGeneration.Sign);
-            string input = rule != null ? rule.Result : prevGeneration.Sign.ToString();
 
-            Token tmp = GenerateTokens(prevGeneration, input);
-            if (start == null)
+            Token tmp = null;
+            Token end = null;
+            if (rule != null)
             {
-                start = tmp;
+                int index = 0;
+                tmp = GenerateTokens(prevGeneration, rule.Result, out end, ref index);
             }
             else
             {
-                last.Next = tmp;
+                tmp = new Token(prevGeneration.Sign, prevGeneration, prevGeneration.BranchId, Depth());
             }
 
-            while (tmp.Next != null)
+            AddToken(ref start, ref last, tmp);
+
+            if (end != null)
             {
-                tmp = tmp.Next;
+                last = end;
             }
-            last = tmp;
 
             prevGeneration = prevGeneration.Next;
         }
         _root.Add(start);
     }
 
-    public override void DisplayCurrentState()
+    public virtual void DisplayCurrentState()
     {
         string s = "";
-        ALSystem.SystemSignAction stringify = (char sign) => s += sign;
+        LSystem.SystemSignAction stringify = (Token t) => s += t.ToString();
         ForEach(stringify);
-        Debug.Log("Current state " + s);
+        Debug.Log("Current state:\n" + s);
     }
 
-    Token GenerateTokens(Token parent, string input)
+    void AddToken(ref Token start, ref Token last, Token newToken)
+    {
+        if (start == null)
+        {
+            start = newToken;
+            last = start;
+        }
+        else
+        {
+            last.Next = newToken;
+            newToken.Prev = last;
+            last = newToken;
+        }
+    }
+
+    Token GenerateTokens(Token parent, string input, out Token end, ref int i)
     {
         Token start = null;
         Token last = null;
-        for (int i = 0; i < input.Length; i++)
+        int drawableId = 0;
+        int currentBranchId = _branchId;
+        _branchId++;
+
+        for (; i < input.Length; i++)
         {
-            Token tmp = new Token(input[i], parent);
-            if (start == null)
+            char sign = input[i];
+            Token tmp = null;
+
+            if (sign == '[')
             {
-                start = tmp;
-                last = start;
+                AddToken(ref start, ref last, new Token(sign, parent, currentBranchId, Depth()));
+                i++;
+                Token endTmp = null;
+                tmp = GenerateTokens(parent, input, out endTmp, ref i);
+                AddToken(ref start, ref last, tmp);
+                if (endTmp != null)
+                {
+                    last = endTmp;
+                }
+
+                AddToken(ref start, ref last, new Token(input[i], parent, currentBranchId, Depth()));
+            }
+            else if (sign == ']')
+            {
+                break;
             }
             else
             {
-                last.Next = tmp;
-                tmp.Prev = last;
-                last = tmp;
+                tmp = new Token(sign, parent, currentBranchId, Depth());
+                AddToken(ref start, ref last, tmp);
+
+                TokenInterpretor.ActionData data =_interpretor.GetActionData(sign);
+                if (data.IsDrawable)
+                {
+                    drawableId++;
+                    tmp.DrawableId = drawableId;
+                }
             }
+        }
+        
+        end = last;
+        last = start;
+        while (last != null)
+        {
+            if (currentBranchId == last.BranchId)
+            {
+                last.DrawableIdMax = drawableId;
+            }
+            last = last.Next;
         }
         return start;
     }
 
-    public override SystemData Data {
+    public virtual SystemData Data {
         get { return _systemData; }
         set {
+            _root.Clear();
+            _branchId = 0;
             _systemData = value;
-            _root.Add(GenerateTokens(null, _systemData.Axiom));
+            int index = 0;
+            Token end = null;
+            _root.Add(GenerateTokens(null, _systemData.Axiom, out end, ref index));
         } 
     }
 
-    public override int Depth()
+    public virtual int Depth()
     {
         return _root.Count;
     }

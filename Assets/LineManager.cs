@@ -15,16 +15,28 @@ public class LineManager : MonoBehaviour
         public Vector3 Start;
         public Vector3 End;
     }
+    
+    public struct InterpolatedMovingLine
+    {
+        public LineRenderer Line;
+        public Vector3 Start1;
+        public Vector3 End1;
+        public Vector3 Start2;
+        public Vector3 End2;
+    }
+
     List<InterpolatedLine> _interpolatedLines;
     GameObject _root;
 
     Dictionary<int, List<InterpolatedLine>> _interpolatedLinesId;
+    SortedDictionary<int, List<InterpolatedMovingLine>> _interpolatedMovingLinesId;
 
     void Start()
     {
         _lines = new List<GameObject>();
         _interpolatedLines = new List<InterpolatedLine>();
         _interpolatedLinesId = new Dictionary<int, List<InterpolatedLine>>();
+        _interpolatedMovingLinesId = new SortedDictionary<int, List<InterpolatedMovingLine>>();
         _root = new GameObject();
         _root.name = "Lines";
     }
@@ -72,6 +84,27 @@ public class LineManager : MonoBehaviour
         }
         _interpolatedLinesId[id].Add(interpolatedLine);
     }
+    
+    public void CreateInterpolatedLine(int id, Vector3 start1, Vector3 end1, Vector3 start2, Vector3 end2)
+    {
+        GameObject gameObject = GameObject.Instantiate(_linePrefab);
+        LineRenderer line = gameObject.GetComponent<LineRenderer>();
+        line.SetPosition(0, start1);
+        line.SetPosition(1, start2);
+        gameObject.transform.SetParent(_root.transform);
+        InterpolatedMovingLine interpolatedLine = new InterpolatedMovingLine();
+        interpolatedLine.Start1 = start1;
+        interpolatedLine.End1 = end1;
+        interpolatedLine.Start2 = start2;
+        interpolatedLine.End2 = end2;
+        interpolatedLine.Line = line;
+        
+        if (!_interpolatedMovingLinesId.ContainsKey(id))
+        {
+            _interpolatedMovingLinesId[id] = new List<InterpolatedMovingLine>();
+        }
+        _interpolatedMovingLinesId[id].Add(interpolatedLine);
+    }
 
     public void ExpandLine()
     {
@@ -81,12 +114,23 @@ public class LineManager : MonoBehaviour
     public void ExpandLineId()
     {
         int count = 0;
-         foreach (KeyValuePair<int, List<InterpolatedLine>> interpolatedLine in _interpolatedLinesId)
+        foreach (KeyValuePair<int, List<InterpolatedLine>> interpolatedLine in _interpolatedLinesId)
         {
             count += interpolatedLine.Value.Count;
         }
         Debug.Log("Interpoling " + count + " lines.");
         StartCoroutine(ExpandLineIdCor(0));
+    }
+
+    public void ExpandMovingLineId()
+    {
+        int count = 0;
+        foreach (KeyValuePair<int, List<InterpolatedMovingLine>> interpolatedLine in _interpolatedMovingLinesId)
+        {
+            count += interpolatedLine.Value.Count;
+        }
+        Debug.Log("Interpoling moving line " + count + " lines.");
+        StartCoroutine(ExpandMovingLineIdCor());
     }
 
     IEnumerator ExpandLineCor()
@@ -123,6 +167,27 @@ public class LineManager : MonoBehaviour
             StartCoroutine(ExpandLineIdCor(++id));
         }
     }
+    
+    IEnumerator ExpandMovingLineIdCor()
+    {
+        float timerMax = 0.2f;
+
+        foreach (KeyValuePair<int, List<InterpolatedMovingLine>> pair in _interpolatedMovingLinesId)
+        {
+            float timer = 0f;
+            Debug.Log("Expand moving line. Id: " + pair.Key + ". Count: " + pair.Value.Count);
+            while (timer < timerMax)
+            {
+                timer += Time.deltaTime;
+                foreach (InterpolatedMovingLine interpolatedLine in pair.Value)
+                {
+                    interpolatedLine.Line.SetPosition(0, Vector3.Lerp(interpolatedLine.Start1, interpolatedLine.End1, Mathf.Min(timer, timerMax) / timerMax));
+                    interpolatedLine.Line.SetPosition(1, Vector3.Lerp(interpolatedLine.Start2, interpolatedLine.End2, Mathf.Min(timer, timerMax) / timerMax));
+                }
+                yield return new WaitForSeconds(Time.deltaTime);
+            }
+        }
+    }
 
     public void Clear()
     {
@@ -152,6 +217,17 @@ public class LineManager : MonoBehaviour
                 }
             }
             _interpolatedLinesId.Clear();
+        }
+        if (_interpolatedMovingLinesId != null)
+        {
+            foreach (KeyValuePair<int, List<InterpolatedMovingLine>> interpolatedLineId in _interpolatedMovingLinesId)
+            {
+                foreach (InterpolatedMovingLine interpolatedLine in interpolatedLineId.Value)
+                {
+                    GameObject.Destroy(interpolatedLine.Line.gameObject);
+                }
+            }
+            _interpolatedMovingLinesId.Clear();
         }
     }
 }
