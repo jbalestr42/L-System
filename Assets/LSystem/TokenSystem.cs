@@ -48,31 +48,40 @@ public class SystemData
 
 public class LSystem
 {
+    public enum TokenType
+    {
+        Branch,
+        Leaf
+    }
+
     public class Token
     {
         public char Sign = '.';
         public Token Prev = null;
         public Token Next = null;
         public Token Parent = null;
-        public int DrawableId = 0;
-        public int DrawableIdMax = 0;
+        public int DrawableId = 1;
+        public int DrawableIdMax = 1;
         public int Depth = 0;
         public int BranchId = 0;
+        public TokenType Type = TokenType.Branch;
+        public bool ShouldExpand = false;
 
         public Vector3 Start;
         public Vector3 End;
 
-        public Token(char sign, Token parent, int branchId, int depth)
+        public Token(char sign, Token parent, int branchId, int depth, bool shouldExpand = false)
         {
             Sign = sign;
             Parent = parent;
             BranchId = branchId;
             Depth = depth;
+            ShouldExpand = shouldExpand;
         }
 
         public override string ToString()
         {
-            return Sign + "(" + DrawableId + "/" + DrawableIdMax + ") - " + BranchId + " - " + Depth + "\n";
+            return Sign + "(" + DrawableId + "/" + DrawableIdMax + ") - " + Type.ToString() + " - " + BranchId + " - " + Depth + "\n";
         }
     }
 
@@ -142,8 +151,9 @@ public class LSystem
     public virtual void DisplayCurrentState()
     {
         string s = "";
-        LSystem.SystemSignAction stringify = (Token t) => s += t.ToString();
-        ForEach(stringify);
+        LSystem.SystemSignAction stringify = (Token t) => s += t.Sign;
+        LSystem.SystemSignAction stringifyVerbose = (Token t) => s += t.ToString();
+        ForEach(stringifyVerbose);
         Debug.Log("Current state:\n" + s);
     }
 
@@ -162,7 +172,7 @@ public class LSystem
         }
     }
 
-    Token GenerateTokens(Token parent, string input, out Token end, ref int i)
+    Token GenerateTokens(Token parent, string input, out Token end, ref int i, bool shouldExpand = false)
     {
         Token start = null;
         Token last = null;
@@ -180,7 +190,7 @@ public class LSystem
                 AddToken(ref start, ref last, new Token(sign, parent, currentBranchId, Depth()));
                 i++;
                 Token endTmp = null;
-                tmp = GenerateTokens(parent, input, out endTmp, ref i);
+                tmp = GenerateTokens(parent, input, out endTmp, ref i, true);
                 AddToken(ref start, ref last, tmp);
                 if (endTmp != null)
                 {
@@ -195,7 +205,7 @@ public class LSystem
             }
             else
             {
-                tmp = new Token(sign, parent, currentBranchId, Depth());
+                tmp = new Token(sign, parent, currentBranchId, Depth(), shouldExpand);
                 AddToken(ref start, ref last, tmp);
 
                 TokenInterpretor.ActionData data =_interpretor.GetActionData(sign);
@@ -206,7 +216,7 @@ public class LSystem
                 }
             }
         }
-        
+
         end = last;
         last = start;
         while (last != null)
@@ -214,9 +224,11 @@ public class LSystem
             if (currentBranchId == last.BranchId)
             {
                 last.DrawableIdMax = drawableId;
+                last.Type = TokenType.Branch;
             }
             last = last.Next;
         }
+        end.Type = TokenType.Leaf;
         return start;
     }
 

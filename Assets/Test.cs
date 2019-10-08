@@ -15,8 +15,12 @@ public class Test : MonoBehaviour
         
         Oisif.SystemData systemData;
 
-        systemData = new Oisif.SystemData("F", 45f, 3f);
-        systemData.AddRule(new Oisif.Rule('F', "F[+F][-F]"));
+        systemData = new Oisif.SystemData("F", 45f, 1.5f);
+        systemData.AddRule(new Oisif.Rule('F', "G[+F]"));
+        _systemData.Add(systemData);
+
+        systemData = new Oisif.SystemData("F", 45f, 1.5f);
+        systemData.AddRule(new Oisif.Rule('F', "G[+F][-F]"));
         _systemData.Add(systemData);
 
         systemData = new Oisif.SystemData("F", 45f, 3f);

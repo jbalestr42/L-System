@@ -45,6 +45,7 @@ public class TokenInterpretor : Interpretor<LSystem>
 
         AddAction('+', false, IncreaseAngle);
         AddAction('-', false, DecreaseAngle);
+        AddAction('G', true, DrawLinePrevGen);
         AddAction('F', true, DrawLinePrevGen);
         AddAction('f', true, Move);
         AddAction('[', false, SaveDrawState);
@@ -128,7 +129,7 @@ public class TokenInterpretor : Interpretor<LSystem>
         Vector3 end = _currentPosition + Quaternion.Euler(0f, 0f, _currentAngle) * new Vector3(lineLength, 0f, 0f);
         if (token.Parent != null)
         {
-            if (token.DrawableIdMax == 1) // new branch, how to identify real new branch ?
+            if (token.Type == LSystem.TokenType.Leaf && token.ShouldExpand) // new branch, how to identify NEW Leaf ?
             {
                 lineLength = _lineLength / Mathf.Pow(system.Data.DepthFactor, (system.Depth() - 1));
 
