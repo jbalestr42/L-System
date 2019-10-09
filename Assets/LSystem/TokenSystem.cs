@@ -150,11 +150,15 @@ public class LSystem
 
     public virtual void DisplayCurrentState()
     {
+        Debug.LogWarning("Be carful this log is expensive !!");
         string s = "";
+        string sv = "";
         LSystem.SystemSignAction stringify = (Token t) => s += t.Sign;
-        LSystem.SystemSignAction stringifyVerbose = (Token t) => s += t.ToString();
+        LSystem.SystemSignAction stringifyVerbose = (Token t) => sv += t.ToString();
+        ForEach(stringify);
         ForEach(stringifyVerbose);
         Debug.Log("Current state:\n" + s);
+        Debug.Log("Current state:\n" + sv);
     }
 
     void AddToken(ref Token start, ref Token last, Token newToken)

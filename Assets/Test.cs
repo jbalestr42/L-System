@@ -11,42 +11,21 @@ public class Test : MonoBehaviour
 
     void Start()
     {
+        // TODO remove the depth factor and use the line scale factor instead
         _systemData = new List<Oisif.SystemData>();
         
         Oisif.SystemData systemData;
-
-        systemData = new Oisif.SystemData("F", 45f, 1.5f);
-        systemData.AddRule(new Oisif.Rule('F', "G[+F]"));
+        
+        systemData = new Oisif.SystemData("F", 22.5f, 2f);
+        systemData.AddRule(new Oisif.Rule('F', "FF+[+F-F-F]-[-F+F+F]"));
         _systemData.Add(systemData);
-
+        
         systemData = new Oisif.SystemData("F", 45f, 1.5f);
         systemData.AddRule(new Oisif.Rule('F', "G[+F][-F]"));
         _systemData.Add(systemData);
 
         systemData = new Oisif.SystemData("F", 45f, 3f);
         systemData.AddRule(new Oisif.Rule('F', "F[+F]FF"));
-        _systemData.Add(systemData);
-        
-        systemData = new Oisif.SystemData("YF+XF+YF-XF-YF-XF-YF+XF+YF", 60f, 2f);
-        systemData.AddRule(new Oisif.Rule('X', "YF+XF+Y"));
-        systemData.AddRule(new Oisif.Rule('Y', "XF-YF-X"));
-        _systemData.Add(systemData);
-
-        systemData = new Oisif.SystemData("F+F+F+F", 90f, 3f);
-        systemData.AddRule(new Oisif.Rule('F', "FF+F+F+F+FF"));
-        _systemData.Add(systemData);
-        
-        systemData = new Oisif.SystemData("F", 22.5f, 2f);
-        systemData.AddRule(new Oisif.Rule('F', "FF+[+F-F-F]-[-F+F+F]"));
-        _systemData.Add(systemData);
-        
-        systemData = new Oisif.SystemData("FX", 40f, 1f);
-        systemData.AddRule(new Oisif.Rule('X', ">[-FX]+FX"));
-        _systemData.Add(systemData);
-        
-        systemData = new Oisif.SystemData("F-F-F-F", 90f, 4f);
-        systemData.AddRule(new Oisif.Rule('F', "F-f+FF-F-FF-Ff-FF+f-FF+F+FF+Ff+FFF"));
-        systemData.AddRule(new Oisif.Rule('f', "ffffff"));
         _systemData.Add(systemData);
 
         _system = new Oisif.LSystem();
@@ -74,7 +53,7 @@ public class Test : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.E))
         {
             _system.NextGeneration();
-            _system.DisplayCurrentState();
+            //_system.DisplayCurrentState();
         }
         
         if (Input.GetKeyDown(KeyCode.D))
@@ -85,12 +64,20 @@ public class Test : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            _system.NextGeneration();
-            _system.DisplayCurrentState();
-            _interpretor.Reset();
-            _interpretor.Execute(_system);
+            if (_system.Depth() >= 0)
+            {
+                // Draw
+                _interpretor.Reset();
+                _interpretor.Execute(_system);
+            }
 
+            // Compute next generation
+            _system.NextGeneration();
+            
+            /*
+            // Move the camera to see the whole tree
             Bounds bounds = _interpretor.CameraBounds;
+            Debug.Log(bounds);
             
             float xCenter = bounds.min.x + (Mathf.Abs(bounds.max.x - bounds.min.x) / 2f);
             float yCenter = bounds.min.y + (Mathf.Abs(bounds.max.y - bounds.min.y) / 2f);
@@ -98,6 +85,7 @@ public class Test : MonoBehaviour
             float height = 90f / Camera.main.fieldOfView * (bounds.max.y - bounds.center.y) * 1.2f;
  
             Camera.main.transform.position = new Vector3(bounds.center.x, bounds.center.y, -height);
+            */
         }
     }
 }

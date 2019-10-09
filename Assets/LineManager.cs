@@ -129,7 +129,7 @@ public class LineManager : MonoBehaviour
         {
             count += interpolatedLine.Value.Count;
         }
-        Debug.Log("Interpoling moving line " + count + " lines.");
+        Debug.Log("Interpoling " + count + " lines.");
         StartCoroutine(ExpandMovingLineIdCor());
     }
 

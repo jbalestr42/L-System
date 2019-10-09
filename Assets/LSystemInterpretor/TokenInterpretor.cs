@@ -118,18 +118,18 @@ public class TokenInterpretor : Interpretor<LSystem>
         Vector3 start2 = _currentPosition;
 
         LSystem.Token tmp = token;
-        int countParent = 0;
+        /*int countParent = 0;
         while (tmp.Parent != null)
         {
             countParent++;
             tmp = tmp.Parent;
-        }
+        }*/
         
         Vector3 start = _currentPosition;
         Vector3 end = _currentPosition + Quaternion.Euler(0f, 0f, _currentAngle) * new Vector3(lineLength, 0f, 0f);
         if (token.Parent != null)
         {
-            if (token.Type == LSystem.TokenType.Leaf && token.ShouldExpand) // new branch, how to identify NEW Leaf ?
+            if (token.ShouldExpand)
             {
                 lineLength = _lineLength / Mathf.Pow(system.Data.DepthFactor, (system.Depth() - 1));
 
@@ -162,10 +162,8 @@ public class TokenInterpretor : Interpretor<LSystem>
 
         _currentPosition = end;
 
-        //Vector3 origin = _savedPositions.Count != 0 ? _savedPositions.Peek().Position : _origin;
-
-        _lineManager.CreateInterpolatedLine(token.Depth, start1, start, start2, end);
-        Debug.Log("New line - token: " + token.ToString() + " | start1: " + start1.ToString("F2") + " | start : " + start.ToString("F2") + " | start2: " + start2.ToString("F2") + " |end: " + end.ToString("F2"));
+        _lineManager.CreateInterpolatedLine(token.Depth + token.DrawableId, start1, start, start2, end);
+        //Debug.Log("New line - token: " + token.ToString() + " | start1: " + start1.ToString("F2") + " | start : " + start.ToString("F2") + " | start2: " + start2.ToString("F2") + " |end: " + end.ToString("F2"));
 
         token.Start = start;
         token.End = end;
@@ -177,7 +175,7 @@ public class TokenInterpretor : Interpretor<LSystem>
 
     public void Reset()
     {
-        _origin = Vector3.zero;
+        _origin = Vector3.one;
         _currentPosition = _origin;
         _currentAngle = 0f;
         _lineLength = 5f;
