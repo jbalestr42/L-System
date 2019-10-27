@@ -125,11 +125,21 @@ public class TokenInterpretor : Interpretor<LSystem>
             tmp = tmp.Parent;
         }*/
         
+        bool isParentDrawable = false;
+        if (token.Parent != null)
+        {
+            if (ContainsAction(token.Parent.Sign))
+            {
+                ActionData data = GetActionData(token.Parent.Sign);
+                isParentDrawable = data.IsDrawable;
+            }
+        }
+
         Vector3 start = _currentPosition;
         Vector3 end = _currentPosition + Quaternion.Euler(0f, 0f, _currentAngle) * new Vector3(lineLength, 0f, 0f);
         if (token.Parent != null)
         {
-            if (token.ShouldExpand)
+            if (token.ShouldExpand || !isParentDrawable)
             {
                 lineLength = _lineLength / Mathf.Pow(system.Data.DepthFactor, (system.Depth() - 1));
 
@@ -156,12 +166,10 @@ public class TokenInterpretor : Interpretor<LSystem>
                 end = start2;
             }
         }
-        else
-        {
-        }
 
         _currentPosition = end;
 
+        // if isParentDrawable -> changer l'ordre de dessin
         _lineManager.CreateInterpolatedLine(token.Depth + token.DrawableId, start1, start, start2, end);
         //Debug.Log("New line - token: " + token.ToString() + " | start1: " + start1.ToString("F2") + " | start : " + start.ToString("F2") + " | start2: " + start2.ToString("F2") + " |end: " + end.ToString("F2"));
 

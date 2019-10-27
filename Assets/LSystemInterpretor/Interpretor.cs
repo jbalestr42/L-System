@@ -46,6 +46,11 @@ public class Interpretor<T> where T : LSystem
         return data.Action;
     }
     
+    public bool ContainsAction(char sign)
+    {
+        return _actions.ContainsKey(sign);
+    }
+    
     public virtual void Execute(T system)
     {
         Assert.IsNotNull(system, "Interpretor.Execute: The L-system is null");

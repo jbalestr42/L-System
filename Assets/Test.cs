@@ -16,16 +16,43 @@ public class Test : MonoBehaviour
         
         Oisif.SystemData systemData;
         
-        systemData = new Oisif.SystemData("F", 22.5f, 2f);
-        systemData.AddRule(new Oisif.Rule('F', "FF+[+F-F-F]-[-F+F+F]"));
+        // Need to be fix
+        // Remove the last param, line length must be handled by the sign ">"
+        systemData = new Oisif.SystemData("FX", 40f, 1.5f);
+        systemData.AddRule(new Oisif.Rule('X', "F[-FX][+FX]"));
+        _systemData.Add(systemData);
+
+        systemData = new Oisif.SystemData("FX", 40f, 1.5f);
+        systemData.AddRule(new Oisif.Rule('X', ">[-FX]+FX"));
         _systemData.Add(systemData);
         
         systemData = new Oisif.SystemData("F", 45f, 1.5f);
         systemData.AddRule(new Oisif.Rule('F', "G[+F][-F]"));
         _systemData.Add(systemData);
-
+        
+        systemData = new Oisif.SystemData("F", 22.5f, 2f);
+        systemData.AddRule(new Oisif.Rule('F', "FF+[+F-F-F]-[-F+F+F]"));
+        _systemData.Add(systemData);
+        
         systemData = new Oisif.SystemData("F", 45f, 3f);
         systemData.AddRule(new Oisif.Rule('F', "F[+F]FF"));
+        _systemData.Add(systemData);
+        
+        // Need to be fix
+        systemData = new Oisif.SystemData("YF+XF+YF-XF-YF-XF-YF+XF+YF", 60f, 2f);
+        systemData.AddRule(new Oisif.Rule('X', "YF+XF+Y"));
+        systemData.AddRule(new Oisif.Rule('Y', "XF-YF-X"));
+        _systemData.Add(systemData);
+
+        // Need to be fix
+        systemData = new Oisif.SystemData("F+F+F+F", 90f, 3f);
+        systemData.AddRule(new Oisif.Rule('F', "FF+F+F+F+FF"));
+        _systemData.Add(systemData);
+        
+        // Need to be fix
+        systemData = new Oisif.SystemData("F-F-F-F", 90f, 4f);
+        systemData.AddRule(new Oisif.Rule('F', "F-f+FF-F-FF-Ff-FF+f-FF+F+FF+Ff+FFF"));
+        systemData.AddRule(new Oisif.Rule('f', "ffffff"));
         _systemData.Add(systemData);
 
         _system = new Oisif.LSystem();
@@ -53,7 +80,7 @@ public class Test : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.E))
         {
             _system.NextGeneration();
-            //_system.DisplayCurrentState();
+            _system.DisplayCurrentState();
         }
         
         if (Input.GetKeyDown(KeyCode.D))

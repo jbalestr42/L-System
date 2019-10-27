@@ -50,6 +50,7 @@ public class LSystem
 {
     public enum TokenType
     {
+        None,
         Branch,
         Leaf
     }
@@ -64,7 +65,7 @@ public class LSystem
         public int DrawableIdMax = 1;
         public int Depth = 0;
         public int BranchId = 0;
-        public TokenType Type = TokenType.Branch;
+        public TokenType Type = TokenType.None;
         public bool ShouldExpand = false;
 
         public Vector3 Start;
@@ -81,7 +82,7 @@ public class LSystem
 
         public override string ToString()
         {
-            return Sign + "(" + DrawableId + "/" + DrawableIdMax + ") - " + Type.ToString() + " - " + BranchId + " - " + Depth + "\n";
+            return Sign + "(" + DrawableId + "/" + DrawableIdMax + ") - " + Type.ToString() + " - " + BranchId + " - " + Depth + " - " + ShouldExpand + "\n";
         }
     }
 
@@ -238,7 +239,8 @@ public class LSystem
 
     public virtual SystemData Data {
         get { return _systemData; }
-        set {
+        set
+        {
             _root.Clear();
             _branchId = 0;
             _systemData = value;
