@@ -322,6 +322,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _linePrefab: {fileID: 5694301979267652772, guid: ba719a977252bf249967b1aacdb70952,
     type: 3}
+  _circlePrefab: {fileID: 5694301979267652772, guid: 9a77e721c0bed704bb3c94a70411bbec,
+    type: 3}
 --- !u!1 &1177401932
 GameObject:
   m_ObjectHideFlags: 0

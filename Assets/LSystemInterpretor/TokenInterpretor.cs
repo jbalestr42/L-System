@@ -170,7 +170,7 @@ public class TokenInterpretor : Interpretor<LSystem>
     public override void Execute(LSystem system)
     {
         base.Execute(system);
-        _RenderManager.ExpandLines();
+        _RenderManager.Expand();
     }
 }
 

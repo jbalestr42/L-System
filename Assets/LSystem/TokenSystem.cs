@@ -164,16 +164,19 @@ public class LSystem
 
     void AddToken(ref Token start, ref Token last, Token newToken)
     {
-        if (start == null)
+        if (newToken != null)
         {
-            start = newToken;
-            last = start;
-        }
-        else
-        {
-            last.Next = newToken;
-            newToken.Prev = last;
-            last = newToken;
+            if (start == null)
+            {
+                start = newToken;
+                last = start;
+            }
+            else
+            {
+                last.Next = newToken;
+                newToken.Prev = last;
+                last = newToken;
+            }
         }
     }
 
@@ -233,7 +236,10 @@ public class LSystem
             }
             last = last.Next;
         }
-        end.Type = TokenType.Leaf;
+        if (end != null)
+        {
+            end.Type = TokenType.Leaf;
+        }
         return start;
     }
 
