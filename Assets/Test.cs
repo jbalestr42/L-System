@@ -26,12 +26,12 @@ public class Test : MonoBehaviour
         systemData.AddRule(new Oisif.Rule('X', ">[-FX]+FX"));
         _systemData.Add(systemData);
         
-        systemData = new Oisif.SystemData("F", 45f, 1.5f);
-        systemData.AddRule(new Oisif.Rule('F', "G[+F][-F]"));
-        _systemData.Add(systemData);
-        
         systemData = new Oisif.SystemData("F", 22.5f, 2f);
         systemData.AddRule(new Oisif.Rule('F', "FF+[+F-F-F]-[-F+F+F]"));
+        _systemData.Add(systemData);
+        
+        systemData = new Oisif.SystemData("F", 45f, 1.5f);
+        systemData.AddRule(new Oisif.Rule('F', "G[+F][-F]"));
         _systemData.Add(systemData);
         
         systemData = new Oisif.SystemData("F", 45f, 3f);
@@ -100,19 +100,6 @@ public class Test : MonoBehaviour
 
             // Compute next generation
             _system.NextGeneration();
-            
-            /*
-            // Move the camera to see the whole tree
-            Bounds bounds = _interpretor.CameraBounds;
-            Debug.Log(bounds);
-            
-            float xCenter = bounds.min.x + (Mathf.Abs(bounds.max.x - bounds.min.x) / 2f);
-            float yCenter = bounds.min.y + (Mathf.Abs(bounds.max.y - bounds.min.y) / 2f);
-
-            float height = 90f / Camera.main.fieldOfView * (bounds.max.y - bounds.center.y) * 1.2f;
- 
-            Camera.main.transform.position = new Vector3(bounds.center.x, bounds.center.y, -height);
-            */
         }
     }
 }

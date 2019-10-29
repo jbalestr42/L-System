@@ -27,26 +27,25 @@ public class TokenInterpretor : Interpretor<LSystem>
         public int SegmentCount { get { return _segmentCount; } }
     }
 
-    LineManager _lineManager;
+    RenderManager _RenderManager;
     float _currentAngle;
     Vector3 _origin;
     Vector3 _currentPosition;
     float _lineLength;
     float _lineLengthScaleFactor;
-    Bounds _bounds;
     int _segmentCount;
     Stack<DrawState> _savedPositions;
 
     public TokenInterpretor()
         :base()
     {
-        _lineManager = Object.FindObjectOfType<LineManager>();
+        _RenderManager = Object.FindObjectOfType<RenderManager>();
         _savedPositions = new Stack<DrawState>();
 
         AddAction('+', false, IncreaseAngle);
         AddAction('-', false, DecreaseAngle);
-        AddAction('G', true, DrawLinePrevGen);
-        AddAction('F', true, DrawLinePrevGen);
+        AddAction('G', true, DrawLine);
+        AddAction('F', true, DrawLine);
         AddAction('f', true, Move);
         AddAction('[', false, SaveDrawState);
         AddAction(']', false, RestoreDrawState);
@@ -97,34 +96,11 @@ public class TokenInterpretor : Interpretor<LSystem>
 
     void DrawLine(LSystem.Token token, LSystem system)
     {
-        float lineLength = _lineLength / Mathf.Pow(system.Data.DepthFactor, (system.Depth() - 1));
-        Vector3 start = _currentPosition;
-        Vector3 end =  _currentPosition + Quaternion.Euler(0f, 0f, _currentAngle) * new Vector3(lineLength, 0f, 0f);
-        _currentPosition = end;
-
-        Vector3 origin = _savedPositions.Count != 0 ? _savedPositions.Peek().Position : _origin;
-
-        _lineManager.CreateInterpolatedLine(_segmentCount, start, start, end);
-
-        _bounds.Encapsulate(start);
-        _bounds.Encapsulate(end);
-    }
-
-    void DrawLinePrevGen(LSystem.Token token, LSystem system)
-    {
         float lineLength = _lineLength;
         Vector3 offset = Vector3.zero;
         Vector3 start1 = _currentPosition;
         Vector3 start2 = _currentPosition;
 
-        LSystem.Token tmp = token;
-        /*int countParent = 0;
-        while (tmp.Parent != null)
-        {
-            countParent++;
-            tmp = tmp.Parent;
-        }*/
-        
         bool isParentDrawable = false;
         if (token.Parent != null)
         {
@@ -170,14 +146,12 @@ public class TokenInterpretor : Interpretor<LSystem>
         _currentPosition = end;
 
         // if isParentDrawable -> changer l'ordre de dessin
-        _lineManager.CreateInterpolatedLine(token.Depth + token.DrawableId, start1, start, start2, end);
+        _RenderManager.CreateInterpolatedLine(token.Depth + token.DrawableId, start1, start, start2, end);
         //Debug.Log("New line - token: " + token.ToString() + " | start1: " + start1.ToString("F2") + " | start : " + start.ToString("F2") + " | start2: " + start2.ToString("F2") + " |end: " + end.ToString("F2"));
 
         token.Start = start;
         token.End = end;
 
-        _bounds.Encapsulate(start);
-        _bounds.Encapsulate(end);
         _segmentCount++;
     }
 
@@ -188,19 +162,16 @@ public class TokenInterpretor : Interpretor<LSystem>
         _currentAngle = 0f;
         _lineLength = 5f;
         _lineLengthScaleFactor = 0.7f;
-        _lineManager.Clear();
+        _RenderManager.Clear();
         _savedPositions.Clear();
-        _bounds = new Bounds();
         _segmentCount = 0;
     }
 
     public override void Execute(LSystem system)
     {
         base.Execute(system);
-        _lineManager.ExpandMovingLineId();
+        _RenderManager.ExpandLines();
     }
-
-    public Bounds CameraBounds { get { return _bounds; } }
 }
 
 }
