@@ -44,6 +44,7 @@ public class TokenInterpretor : Interpretor<LSystem>
 
         AddAction('+', false, IncreaseAngle);
         AddAction('-', false, DecreaseAngle);
+        AddAction('Y', true, DrawLine); // TODO add a way to add multiple sign doing the same action
         AddAction('G', true, DrawLine);
         AddAction('F', true, DrawLine);
         AddAction('f', true, Move);
