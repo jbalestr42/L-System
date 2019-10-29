@@ -4,48 +4,6 @@ using UnityEngine;
 namespace Oisif
 {
 
-public class Rule
-{
-    char _sign;
-    string _result;
-
-    public Rule(char sign, string result)
-    {
-        _sign = sign;
-        _result = result;
-    }
-
-    public char Sign { get { return _sign; } }
-    public string Result { get { return _result; } }
-
-    public virtual bool Match(string currentState, int index)
-    {
-        return (currentState[index] == _sign);
-    }
-}
-
-// TODO Scriptable Object?
-public class SystemData
-{
-    public string Axiom { get; }
-    public float Angle { get; }
-    public float DepthFactor { get; }
-    public List<Rule> Rules { get; }
-
-    public SystemData(string axiom, float angle, float depthFactor)
-    {
-        Rules = new List<Rule>();
-        Axiom = axiom;
-        Angle = angle;
-        DepthFactor = depthFactor;
-    }
-
-    public void AddRule(Rule rule)
-    {
-        Rules.Add(rule);
-    }
-}
-
 public class LSystem
 {
     public enum TokenType
@@ -123,14 +81,15 @@ public class LSystem
 
         while (prevGeneration != null)
         {
-            Rule rule = _systemData.Rules.Find(r => r.Sign == prevGeneration.Sign);
+            ARule rule = _systemData.Rules.Find(r => r.Sign == prevGeneration.Sign);
 
             Token tmp = null;
             Token end = null;
             if (rule != null)
             {
                 int index = 0;
-                tmp = GenerateTokens(prevGeneration, rule.Result, out end, ref index);
+                string result = rule.Evaluate(prevGeneration); // verifier si ca fonctionne correctement, j'ai un petit doute
+                tmp = GenerateTokens(prevGeneration, result, out end, ref index);
             }
             else
             {
