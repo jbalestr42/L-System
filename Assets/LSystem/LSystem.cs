@@ -13,6 +13,7 @@ public class LSystem
         Leaf
     }
 
+    // TODO clean up this class to manage different token type (e.g. data to draw line and data to draw circle)
     public class Token
     {
         public char Sign = '.';

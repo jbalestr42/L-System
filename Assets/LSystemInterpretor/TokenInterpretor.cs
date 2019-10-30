@@ -47,6 +47,7 @@ public class TokenInterpretor : Interpretor<LSystem>
         AddAction('Y', true, DrawLine); // TODO add a way to add multiple sign doing the same action
         AddAction('G', true, DrawLine);
         AddAction('F', true, DrawLine);
+        AddAction('C', false, DrawCircle);
         AddAction('f', true, Move);
         AddAction('[', false, SaveDrawState);
         AddAction(']', false, RestoreDrawState);
@@ -99,8 +100,8 @@ public class TokenInterpretor : Interpretor<LSystem>
     {
         float lineLength = _lineLength;
         Vector3 offset = Vector3.zero;
-        Vector3 start1 = _currentPosition;
-        Vector3 start2 = _currentPosition;
+        Vector3 pointStartA = _currentPosition;
+        Vector3 pointStartB = _currentPosition;
 
         bool isParentDrawable = false;
         if (token.Parent != null)
@@ -112,8 +113,8 @@ public class TokenInterpretor : Interpretor<LSystem>
             }
         }
 
-        Vector3 start = _currentPosition;
-        Vector3 end = _currentPosition + Quaternion.Euler(0f, 0f, _currentAngle) * new Vector3(lineLength, 0f, 0f);
+        Vector3 pointEndA = _currentPosition;
+        Vector3 pointEndB = _currentPosition + Quaternion.Euler(0f, 0f, _currentAngle) * new Vector3(lineLength, 0f, 0f);
         if (token.Parent != null)
         {
             if (token.ShouldExpand || !isParentDrawable)
@@ -121,12 +122,12 @@ public class TokenInterpretor : Interpretor<LSystem>
                 lineLength = _lineLength / Mathf.Pow(system.Data.DepthFactor, (system.Depth() - 1));
 
                 // Begin of line
-                start1 = _currentPosition;
-                start2 = _currentPosition;
+                pointStartA = _currentPosition;
+                pointStartB = _currentPosition;
 
                 // End of line
-                start = start1;
-                end = _currentPosition + Quaternion.Euler(0f, 0f, _currentAngle) * new Vector3(lineLength, 0f, 0f);
+                pointEndA = pointStartA;
+                pointEndB = _currentPosition + Quaternion.Euler(0f, 0f, _currentAngle) * new Vector3(lineLength, 0f, 0f);
             }
             else
             {
@@ -135,25 +136,40 @@ public class TokenInterpretor : Interpretor<LSystem>
                 float ratioEnd = (float)token.DrawableId / (float)token.DrawableIdMax;
 
                 // Begin of line
-                start1 = token.Parent.Start + (token.Parent.End - token.Parent.Start) * ratioStart;
-                start2 = token.Parent.Start + (token.Parent.End - token.Parent.Start) * ratioEnd;
+                pointStartA = token.Parent.Start + (token.Parent.End - token.Parent.Start) * ratioStart;
+                pointStartB = token.Parent.Start + (token.Parent.End - token.Parent.Start) * ratioEnd;
                 
                 // End of line
-                start = start1;
-                end = start2;
+                pointEndA = pointStartA;
+                pointEndB = pointStartB;
             }
         }
 
-        _currentPosition = end;
+        _currentPosition = pointEndB;
 
         // if isParentDrawable -> changer l'ordre de dessin
-        _RenderManager.CreateInterpolatedLine(token.Depth + token.DrawableId, start1, start, start2, end);
-        //Debug.Log("New line - token: " + token.ToString() + " | start1: " + start1.ToString("F2") + " | start : " + start.ToString("F2") + " | start2: " + start2.ToString("F2") + " |end: " + end.ToString("F2"));
+        _RenderManager.CreateInterpolatedLine(token.Depth + token.DrawableId, pointStartA, pointEndA, pointStartB, pointEndB);
+        //Debug.Log("New line - token: " + token.ToString() + " | pointStartA: " + start1.ToString("F2") + " | pointEndA : " + pointEndA.ToString("F2") + " | pointStartB: " + pointStartB.ToString("F2") + " |pointEndB: " + pointEndB.ToString("F2"));
 
-        token.Start = start;
-        token.End = end;
-
+        token.Start = pointEndA;
+        token.End = pointEndB;
         _segmentCount++;
+    }
+    
+    void DrawCircle(LSystem.Token token, LSystem system)
+    {
+        float sizeStart = _lineLength;
+        float sizeEnd = sizeStart;
+
+        if (token.Parent == null || token.Parent.Sign != 'C')
+        {
+            // New circle
+            sizeStart = 0f;
+        }
+        _RenderManager.CreateCircle(token.Depth + token.DrawableId, _currentPosition, _currentPosition, sizeStart, sizeEnd);
+
+        token.Start = _currentPosition;
+        token.End = _currentPosition;
     }
 
     public void Reset()

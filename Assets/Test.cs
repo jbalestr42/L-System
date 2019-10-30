@@ -11,34 +11,40 @@ public class Test : MonoBehaviour
 
     void Start()
     {
-        // TODO remove the depth factor and use the line scale factor instead
         _systemData = new List<Oisif.SystemData>();
         
         Oisif.SystemData systemData;
         
-        systemData = new Oisif.SystemData("Y", 45f, 1.5f);
+        // TODO Remove the last param, line length must be handled by the sign ">"
+        systemData = new Oisif.SystemData("Y", 40f, 1.3f);
         List<Oisif.StochasticRule.RuleParam> ruleParams = new List<Oisif.StochasticRule.RuleParam>();
-        ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.5f, "G[+F][-F]"));
-        ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.5f, "G[+F]"));
+        ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.5f, ">G[+F][-F]"));
+        ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.2f, ">G[+F]"));
+        ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.3f, "GC"));
         systemData.AddRule(new Oisif.StochasticRule('F', ruleParams));
-        systemData.AddRule(new Oisif.SimpleRule('Y', "G[+F][-F]"));
+        systemData.AddRule(new Oisif.SimpleRule('Y', ">G[+F][-F]"));
         _systemData.Add(systemData);
         
-        // TODO Remove the last param, line length must be handled by the sign ">"
-        systemData = new Oisif.SystemData("FX", 40f, 1.5f);
-        systemData.AddRule(new Oisif.SimpleRule('X', "F[-FX][+FX]"));
-        _systemData.Add(systemData);
+        // TODO this one is still broken because the rule start with a single F
+        //systemData = new Oisif.SystemData("FX", 40f, 1.5f);
+        //systemData.AddRule(new Oisif.SimpleRule('X', ">F[-FX][+FX]"));
+        //_systemData.Add(systemData);
 
         systemData = new Oisif.SystemData("FX", 40f, 1.5f);
         systemData.AddRule(new Oisif.SimpleRule('X', ">[-FX]+FX"));
         _systemData.Add(systemData);
         
         systemData = new Oisif.SystemData("F", 45f, 1.5f);
-        systemData.AddRule(new Oisif.SimpleRule('F', "G[+F][-F]"));
+        systemData.AddRule(new Oisif.SimpleRule('F', ">G[+F][-F]"));
+        _systemData.Add(systemData);
+        
+        // Both need to be fixed
+        systemData = new Oisif.SystemData("F", 22.5f, 2f);
+        systemData.AddRule(new Oisif.SimpleRule('F', "FF+[+F-F-F]-[-F+F+F]"));
         _systemData.Add(systemData);
         
         systemData = new Oisif.SystemData("F", 22.5f, 2f);
-        systemData.AddRule(new Oisif.SimpleRule('F', "FF+[+F-F-F]-[-F+F+F]"));
+        systemData.AddRule(new Oisif.SimpleRule('F', "GG+[+F-F-F]-[-F+F+F]"));
         _systemData.Add(systemData);
 
         _system = new Oisif.LSystem();

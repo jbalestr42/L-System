@@ -20,7 +20,8 @@ public class RenderManager : MonoBehaviour
         public SpriteRenderer Sprite;
         public Vector3 CenterStart;
         public Vector3 CenterEnd;
-        public float Size;
+        public float SizeStart;
+        public float SizeEnd;
     }
 
     [SerializeField]
@@ -43,7 +44,7 @@ public class RenderManager : MonoBehaviour
         _interpolatedCircles = new SortedDictionary<int, List<InterpolatedCircle>>();
     }
     
-    public void CreateCircle(int order, Vector3 centerStart, Vector3 centerEnd, float size)
+    public void CreateCircle(int order, Vector3 centerStart, Vector3 centerEnd, float sizeStart, float sizeEnd)
     {
         GameObject gameObject = GameObject.Instantiate(_circlePrefab);
         SpriteRenderer sprite = gameObject.GetComponent<SpriteRenderer>();
@@ -55,7 +56,8 @@ public class RenderManager : MonoBehaviour
         interpolatedCircle.Sprite = sprite;
         interpolatedCircle.CenterStart = centerStart;
         interpolatedCircle.CenterEnd = centerEnd;
-        interpolatedCircle.Size = size;
+        interpolatedCircle.SizeStart = sizeStart;
+        interpolatedCircle.SizeEnd = sizeEnd;
 
         if (!_interpolatedCircles.ContainsKey(order))
         {
@@ -144,7 +146,7 @@ public class RenderManager : MonoBehaviour
                 timer += Time.deltaTime;
                 foreach (InterpolatedCircle interpolatedCircle in pair.Value)
                 {
-                    float scale = Mathf.Lerp(0f, interpolatedCircle.Size, Mathf.Min(timer, duration) / duration);
+                    float scale = Mathf.Lerp(interpolatedCircle.SizeStart, interpolatedCircle.SizeEnd, Mathf.Min(timer, duration) / duration);
                     interpolatedCircle.Sprite.transform.position = Vector3.Lerp(interpolatedCircle.CenterStart, interpolatedCircle.CenterEnd, Mathf.Min(timer, duration) / duration);
                     interpolatedCircle.Sprite.transform.localScale = new Vector3(scale, scale, scale);
                 }
