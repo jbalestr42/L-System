@@ -80,6 +80,12 @@ public class Test : MonoBehaviour
             _interpretor.Reset();
             _interpretor.Execute(_system);
         }
+        
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            _system.Reset();
+            _interpretor.Reset();
+        }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -93,5 +99,16 @@ public class Test : MonoBehaviour
             // Compute next generation
             _system.NextGeneration();
         }
+    }
+
+    void OnGUI()
+    {
+        GUIStyle style = new GUIStyle();
+        style.normal.textColor = Color.white;
+        style.fontSize = 40;
+
+        GUI.Label(new Rect(10, 10, 200, 60), "Arrows to change rules", style);
+        GUI.Label(new Rect(10, 60, 200, 60), "Space to iterate", style);
+        GUI.Label(new Rect(10, 110, 200, 60), "R to reset", style);
     }
 }

@@ -207,13 +207,18 @@ public class LSystem
         get { return _systemData; }
         set
         {
-            _root.Clear();
-            _branchId = 0;
             _systemData = value;
-            int index = 0;
-            Token end = null;
-            _root.Add(GenerateTokens(null, _systemData.Axiom, out end, ref index));
+            Reset();
         } 
+    }
+
+    public void Reset()
+    {
+        _root.Clear();
+        _branchId = 0;
+        int index = 0;
+        Token end = null;
+        _root.Add(GenerateTokens(null, _systemData.Axiom, out end, ref index));
     }
 
     public virtual int Depth()
