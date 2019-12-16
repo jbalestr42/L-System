@@ -143,7 +143,7 @@ public class DrawerInterpretor : LSystemInterpretor
         _currentPosition = pointEndB;
 
         // if isParentDrawable -> changer l'ordre de dessin
-        _RenderManager.CreateInterpolatedLine(token.Depth + token.DrawableId, pointStartA, pointEndA, pointStartB, pointEndB);
+        _RenderManager.CreateInterpolableLine(token.Depth + token.DrawableId, pointStartA, pointEndA, pointStartB, pointEndB);
         //Debug.Log("New line - token: " + token.ToString() + " | pointStartA: " + start1.ToString("F2") + " | pointEndA : " + pointEndA.ToString("F2") + " | pointStartB: " + pointStartB.ToString("F2") + " |pointEndB: " + pointEndB.ToString("F2"));
 
         token.Start = pointEndA;
@@ -161,7 +161,7 @@ public class DrawerInterpretor : LSystemInterpretor
             // New circle
             sizeStart = 0f;
         }
-        _RenderManager.CreateCircle(token.Depth + token.DrawableId, _currentPosition, _currentPosition, sizeStart, sizeEnd);
+        _RenderManager.CreateInterpolableCircle(token.Depth + token.DrawableId, _currentPosition, _currentPosition, sizeStart, sizeEnd);
 
         token.Start = _currentPosition;
         token.End = _currentPosition;

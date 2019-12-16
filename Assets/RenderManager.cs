@@ -4,47 +4,74 @@ using UnityEngine;
 
 public class RenderManager : MonoBehaviour
 {
+    interface IInterpolableShape
+    {
+        void Update(float percent);
+        void Destroy();
+    }
+
     // Represent a line from Point A to Point B interpolating from Start to End
-    struct InterpolatedLine
+    struct InterpolableLine : IInterpolableShape
     {
         public LineRenderer Line;
         public Vector3 PointStartA;
         public Vector3 PointEndA;
         public Vector3 PointStartB;
         public Vector3 PointEndB;
+
+        public void Update(float percent)
+        {
+            Line.SetPosition(0, Vector3.Lerp(PointStartA, PointEndA, percent));
+            Line.SetPosition(1, Vector3.Lerp(PointStartB, PointEndB, percent));
+        }
+
+        public void Destroy()
+        {
+            GameObject.Destroy(Line.gameObject);
+        }
     }
 
-    // Represent a line from Point A to Point B interpolating from Start to End
-    struct InterpolatedCircle
+    // Represent a circle interpolating center to SizeStart to SizeSEnd
+    struct InterpolableCircle : IInterpolableShape
     {
         public SpriteRenderer Sprite;
         public Vector3 CenterStart;
         public Vector3 CenterEnd;
         public float SizeStart;
         public float SizeEnd;
+
+        public void Update(float percent)
+        {
+            float scale = Mathf.Lerp(SizeStart, SizeEnd, percent);
+            Sprite.transform.position = Vector3.Lerp(CenterStart, CenterEnd, percent);
+            Sprite.transform.localScale = new Vector3(scale, scale, scale);
+        }
+
+        public void Destroy()
+        {
+            GameObject.Destroy(Sprite.gameObject);
+        }
     }
 
     [SerializeField]
-    private GameObject _linePrefab;
+    private GameObject _linePrefab = null;
 
     [SerializeField]
-    private GameObject _circlePrefab;
+    private GameObject _circlePrefab = null;
 
     private GameObject _root;
-    private List<GameObject> _lines;
-    private SortedDictionary<int, List<InterpolatedLine>> _interpolatedLines;
-    private SortedDictionary<int, List<InterpolatedCircle>> _interpolatedCircles;
+    private SortedDictionary<int, List<InterpolableLine>> _interpolatedLines;
+    private SortedDictionary<int, List<InterpolableCircle>> _interpolatedCircles;
 
     void Start()
     {
         _root = new GameObject();
-        _root.name = "Lines";
-        _lines = new List<GameObject>();
-        _interpolatedLines = new SortedDictionary<int, List<InterpolatedLine>>();
-        _interpolatedCircles = new SortedDictionary<int, List<InterpolatedCircle>>();
+        _root.name = "RenderManager";
+        _interpolatedLines = new SortedDictionary<int, List<InterpolableLine>>();
+        _interpolatedCircles = new SortedDictionary<int, List<InterpolableCircle>>();
     }
     
-    public void CreateCircle(int order, Vector3 centerStart, Vector3 centerEnd, float sizeStart, float sizeEnd)
+    public void CreateInterpolableCircle(int order, Vector3 centerStart, Vector3 centerEnd, float sizeStart, float sizeEnd)
     {
         GameObject gameObject = GameObject.Instantiate(_circlePrefab);
         SpriteRenderer sprite = gameObject.GetComponent<SpriteRenderer>();
@@ -52,7 +79,7 @@ public class RenderManager : MonoBehaviour
         sprite.transform.localScale = Vector3.zero;
         gameObject.transform.SetParent(_root.transform);
 
-        InterpolatedCircle interpolatedCircle = new InterpolatedCircle();
+        InterpolableCircle interpolatedCircle = new InterpolableCircle();
         interpolatedCircle.Sprite = sprite;
         interpolatedCircle.CenterStart = centerStart;
         interpolatedCircle.CenterEnd = centerEnd;
@@ -61,12 +88,12 @@ public class RenderManager : MonoBehaviour
 
         if (!_interpolatedCircles.ContainsKey(order))
         {
-            _interpolatedCircles[order] = new List<InterpolatedCircle>();
+            _interpolatedCircles[order] = new List<InterpolableCircle>();
         }
         _interpolatedCircles[order].Add(interpolatedCircle);
     }
     
-    public void CreateInterpolatedLine(int order, Vector3 pointStartA, Vector3 pointEndA, Vector3 pointStartB, Vector3 pointEndB)
+    public void CreateInterpolableLine(int order, Vector3 pointStartA, Vector3 pointEndA, Vector3 pointStartB, Vector3 pointEndB)
     {
         GameObject gameObject = GameObject.Instantiate(_linePrefab);
         LineRenderer line = gameObject.GetComponent<LineRenderer>();
@@ -74,7 +101,7 @@ public class RenderManager : MonoBehaviour
         line.SetPosition(1, pointStartB);
         gameObject.transform.SetParent(_root.transform);
 
-        InterpolatedLine interpolatedLine = new InterpolatedLine();
+        InterpolableLine interpolatedLine = new InterpolableLine();
         interpolatedLine.PointStartA = pointStartA;
         interpolatedLine.PointEndA = pointEndA;
         interpolatedLine.PointStartB = pointStartB;
@@ -83,111 +110,55 @@ public class RenderManager : MonoBehaviour
         
         if (!_interpolatedLines.ContainsKey(order))
         {
-            _interpolatedLines[order] = new List<InterpolatedLine>();
+            _interpolatedLines[order] = new List<InterpolableLine>();
         }
         _interpolatedLines[order].Add(interpolatedLine);
     }
 
     public void Expand()
     {
-        int count = 0;
-        foreach (KeyValuePair<int, List<InterpolatedLine>> interpolatedLine in _interpolatedLines)
-        {
-            count += interpolatedLine.Value.Count;
-        }
-        Debug.Log("Interpoling " + count + " lines.");
-        
-        count = 0;
-        foreach (KeyValuePair<int, List<InterpolatedCircle>> interpolatedCircle in _interpolatedCircles)
-        {
-            count += interpolatedCircle.Value.Count;
-        }
-        Debug.Log("Interpoling " + count + " circles.");
-
-        StartCoroutine(ExpandLinesCor());
-        StartCoroutine(ExpandCirclesCor());
-    }
-    
-    // Start interpolating lines based on which order they were created
-    IEnumerator ExpandLinesCor()
-    {
-        float duration = 0.2f;
-
-        foreach (KeyValuePair<int, List<InterpolatedLine>> pair in _interpolatedLines)
-        {
-            Debug.Log("Expanding  line. Id: " + pair.Key + ". Count: " + pair.Value.Count);
-            
-            float timer = 0f;
-            while (timer < duration)
-            {
-                timer += Time.deltaTime;
-                foreach (InterpolatedLine interpolatedLine in pair.Value)
-                {
-                    interpolatedLine.Line.SetPosition(0, Vector3.Lerp(interpolatedLine.PointStartA, interpolatedLine.PointEndA, Mathf.Min(timer, duration) / duration));
-                    interpolatedLine.Line.SetPosition(1, Vector3.Lerp(interpolatedLine.PointStartB, interpolatedLine.PointEndB, Mathf.Min(timer, duration) / duration));
-                }
-                yield return new WaitForSeconds(Time.deltaTime);
-            }
-        }
-    }
-    
-    // Start interpolating circles based on which order they were created
-    IEnumerator ExpandCirclesCor()
-    {
-        float duration = 0.2f;
-
-        foreach (KeyValuePair<int, List<InterpolatedCircle>> pair in _interpolatedCircles)
-        {
-            Debug.Log("Expanding circle. Id: " + pair.Key + ". Count: " + pair.Value.Count);
-            
-            float timer = 0f;
-            while (timer < duration)
-            {
-                timer += Time.deltaTime;
-                foreach (InterpolatedCircle interpolatedCircle in pair.Value)
-                {
-                    float scale = Mathf.Lerp(interpolatedCircle.SizeStart, interpolatedCircle.SizeEnd, Mathf.Min(timer, duration) / duration);
-                    interpolatedCircle.Sprite.transform.position = Vector3.Lerp(interpolatedCircle.CenterStart, interpolatedCircle.CenterEnd, Mathf.Min(timer, duration) / duration);
-                    interpolatedCircle.Sprite.transform.localScale = new Vector3(scale, scale, scale);
-                }
-                yield return new WaitForSeconds(Time.deltaTime);
-            }
-        }
+        StartCoroutine(ExpandCor(_interpolatedLines));
+        StartCoroutine(ExpandCor(_interpolatedCircles));
     }
 
     public void Clear()
     {
-        if (_lines != null)
-        {
-            foreach (GameObject line in _lines)
-            {
-                GameObject.Destroy(line);
-            }
-            _lines.Clear();
-        }
+        Clear(_interpolatedLines);
+        Clear(_interpolatedCircles);
+    }
+    
+    IEnumerator ExpandCor<T>(SortedDictionary<int, List<T>> shapes) where T : IInterpolableShape
+    {
+        float duration = 0.2f;
 
-        if (_interpolatedLines != null)
+        foreach (KeyValuePair<int, List<T>> pair in shapes)
         {
-            foreach (KeyValuePair<int, List<InterpolatedLine>> interpolatedLines in _interpolatedLines)
+            float timer = 0f;
+            while (timer < duration)
             {
-                foreach (InterpolatedLine interpolatedLine in interpolatedLines.Value)
+                timer += Time.deltaTime;
+                foreach (T shape in pair.Value)
                 {
-                    GameObject.Destroy(interpolatedLine.Line.gameObject);
+                    shape.Update(Mathf.Min(timer, duration) / duration);
+                }
+                yield return new WaitForSeconds(Time.deltaTime);
+            }
+        }
+    }
+
+    void Clear<T>(SortedDictionary<int, List<T>> shapes) where T : IInterpolableShape
+    {
+    
+        if (shapes != null)
+        {
+            foreach (KeyValuePair<int, List<T>> pair in shapes)
+            {
+                foreach (T shape in pair.Value)
+                {
+                    shape.Destroy();
                 }
             }
-            _interpolatedLines.Clear();
-        }
-
-        if (_interpolatedCircles != null)
-        {
-            foreach (KeyValuePair<int, List<InterpolatedCircle>> interpolatedCircles in _interpolatedCircles)
-            {
-                foreach (InterpolatedCircle interpolatedCircle in interpolatedCircles.Value)
-                {
-                    GameObject.Destroy(interpolatedCircle.Sprite.gameObject);
-                }
-            }
-            _interpolatedCircles.Clear();
+            shapes.Clear();
         }
     }
 }
