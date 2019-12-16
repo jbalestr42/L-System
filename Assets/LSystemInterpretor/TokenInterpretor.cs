@@ -4,27 +4,22 @@ using UnityEngine;
 namespace Oisif
 {
 
-public class TokenInterpretor : Interpretor<LSystem>
+public class DrawerInterpretor : LSystemInterpretor
 {
     public struct DrawState
     {
-        public Vector3 _position;
-        public float _angle;
-        public float _lineLength;
-        public int _segmentCount;
+        public Vector3 Position;
+        public float Angle;
+        public float LineLength;
+        public int SegmentCount;
     
         public DrawState(Vector3 position, float angle, float lineLength, int segmentCount)
         {
-            _position = position;
-            _angle = angle;
-            _lineLength = lineLength;
-            _segmentCount = segmentCount;
+            Position = position;
+            Angle = angle;
+            LineLength = lineLength;
+            SegmentCount = segmentCount;
         }
-
-        public Vector3 Position { get { return _position; } set { _position = value; } }
-        public float Angle { get { return _angle; } set { _angle = value; } }
-        public float LineLength { get { return _lineLength; } }
-        public int SegmentCount { get { return _segmentCount; } }
     }
 
     RenderManager _RenderManager;
@@ -36,7 +31,7 @@ public class TokenInterpretor : Interpretor<LSystem>
     int _segmentCount;
     Stack<DrawState> _savedPositions;
 
-    public TokenInterpretor()
+    public DrawerInterpretor()
         :base()
     {
         _RenderManager = Object.FindObjectOfType<RenderManager>();
@@ -117,7 +112,7 @@ public class TokenInterpretor : Interpretor<LSystem>
         Vector3 pointEndB = _currentPosition + Quaternion.Euler(0f, 0f, _currentAngle) * new Vector3(lineLength, 0f, 0f);
         if (token.Parent != null)
         {
-            if (token.ShouldExpand || !isParentDrawable)
+            if (token.IsNewBranch || !isParentDrawable)
             {
                 lineLength = _lineLength / Mathf.Pow(system.Data.DepthFactor, (system.Depth() - 1));
 

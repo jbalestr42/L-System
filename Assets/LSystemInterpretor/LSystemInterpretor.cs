@@ -4,7 +4,7 @@ using UnityEngine.Assertions;
 namespace Oisif
 {
 
-public class Interpretor<T> where T : LSystem
+public class LSystemInterpretor
 {
     public struct ActionData
     {
@@ -18,10 +18,10 @@ public class Interpretor<T> where T : LSystem
         }
     }
 
-    public delegate void SystemAction(LSystem.Token token, T system);
+    public delegate void SystemAction(LSystem.Token token, LSystem system);
     Dictionary<char, ActionData> _actions;
 
-    public Interpretor()
+    public LSystemInterpretor()
     {
         _actions = new Dictionary<char, ActionData>();
     }
@@ -51,17 +51,13 @@ public class Interpretor<T> where T : LSystem
         return _actions.ContainsKey(sign);
     }
     
-    public virtual void Execute(T system)
+    public virtual void Execute(LSystem system)
     {
         Assert.IsNotNull(system, "Interpretor.Execute: The L-system is null");
 
         LSystem.SystemSignAction signAction = (LSystem.Token token) =>
         {
-            SystemAction action = GetAction(token.Sign);
-            if (action != null)
-            {
-                action(token, system);
-            }
+            GetAction(token.Sign)?.Invoke(token, system);
         };
 
         system.ForEach(signAction);

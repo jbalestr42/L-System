@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Oisif
 {
 
-public class LSystem
+public sealed class LSystem
 {
     public enum TokenType
     {
@@ -24,43 +24,43 @@ public class LSystem
         public int DrawableIdMax = 1;
         public int Depth = 0;
         public int BranchId = 0;
-        public TokenType Type = TokenType.None;
-        public bool ShouldExpand = false;
+        public bool IsNewBranch = false;
 
+        // Data to line token
         public Vector3 Start;
         public Vector3 End;
 
-        public Token(char sign, Token parent, int branchId, int depth, bool shouldExpand = false)
+        public Token(char sign, Token parent, int branchId, int depth, bool isNewBranch = false)
         {
             Sign = sign;
             Parent = parent;
             BranchId = branchId;
             Depth = depth;
-            ShouldExpand = shouldExpand;
+            IsNewBranch = isNewBranch;
         }
 
         public override string ToString()
         {
-            return Sign + "(" + DrawableId + "/" + DrawableIdMax + ") - " + Type.ToString() + " - " + BranchId + " - " + Depth + " - " + ShouldExpand + "\n";
+            return Sign + "(" + DrawableId + "/" + DrawableIdMax + ") - " + BranchId + " - " + Depth + " - " + IsNewBranch + "\n";
         }
     }
 
     public delegate void SystemSignAction(Token sign);
-    SystemData _systemData;
+    LSystemData _systemData;
 
     List<Token> _root;
-    TokenInterpretor _interpretor;
-    public int _branchId;
+    DrawerInterpretor _interpretor;
+    int _branchId; // Used to uniquely identify a token
 
     public LSystem()
     {
-        _interpretor = new TokenInterpretor();
+        _interpretor = new DrawerInterpretor();
         _systemData = null;
         _root = new List<Token>();
         _branchId = 0;
     }
 
-    public virtual void ForEach(SystemSignAction action)
+    public void ForEach(SystemSignAction action)
     {
         if (action != null)
         {
@@ -74,7 +74,7 @@ public class LSystem
         }
     }
 
-    public virtual void NextGeneration()
+    public void NextGeneration()
     {
         Token prevGeneration = _root[_root.Count - 1];
         Token start = null;
@@ -109,7 +109,7 @@ public class LSystem
         _root.Add(start);
     }
 
-    public virtual void DisplayCurrentState()
+    public void DisplayCurrentState()
     {
         Debug.LogWarning("Be carful this log is expensive !!");
         string s = "";
@@ -140,7 +140,7 @@ public class LSystem
         }
     }
 
-    Token GenerateTokens(Token parent, string input, out Token end, ref int i, bool shouldExpand = false)
+    Token GenerateTokens(Token parent, string input, out Token end, ref int i, bool isNewBranch = false)
     {
         Token start = null;
         Token last = null;
@@ -173,10 +173,11 @@ public class LSystem
             }
             else
             {
-                tmp = new Token(sign, parent, currentBranchId, Depth(), shouldExpand);
+                tmp = new Token(sign, parent, currentBranchId, Depth(), isNewBranch);
                 AddToken(ref start, ref last, tmp);
 
-                TokenInterpretor.ActionData data =_interpretor.GetActionData(sign);
+                // TODO: [MUST FIX] This is bad, the system shouldn't know about the interpretor
+                DrawerInterpretor.ActionData data =_interpretor.GetActionData(sign);
                 if (data.IsDrawable)
                 {
                     drawableId++;
@@ -192,18 +193,13 @@ public class LSystem
             if (currentBranchId == last.BranchId)
             {
                 last.DrawableIdMax = drawableId;
-                last.Type = TokenType.Branch;
             }
             last = last.Next;
-        }
-        if (end != null)
-        {
-            end.Type = TokenType.Leaf;
         }
         return start;
     }
 
-    public virtual SystemData Data {
+    public LSystemData Data {
         get { return _systemData; }
         set
         {
@@ -221,7 +217,7 @@ public class LSystem
         _root.Add(GenerateTokens(null, _systemData.Axiom, out end, ref index));
     }
 
-    public virtual int Depth()
+    public int Depth()
     {
         return _root.Count;
     }
