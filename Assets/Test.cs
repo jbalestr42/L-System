@@ -16,20 +16,6 @@ public class Test : MonoBehaviour
         {
             Oisif.LSystemData systemData = new Oisif.LSystemData("Y", new Oisif.RangeValue(35.0f, 45.0f), 1.1f);
             List<Oisif.StochasticRule.RuleParam> ruleParams = new List<Oisif.StochasticRule.RuleParam>();
-            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.2f, ">G[+F][F]"));
-            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.2f, ">G[F][-F]"));
-            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.2f, ">G[+F][F][-F]"));
-            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.05f, ">G[+F]"));
-            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.05f, ">G[-F]"));
-            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.3f, "GC"));
-            systemData.AddRule(new Oisif.StochasticRule('F', ruleParams));
-            systemData.AddRule(new Oisif.SimpleRule('Y', ">G[+F][Y][-F]"));
-            _systemDatas.Add(systemData);
-        }
-        
-        {
-            Oisif.LSystemData systemData = new Oisif.LSystemData("Y", new Oisif.RangeValue(35.0f, 45.0f), 1.1f);
-            List<Oisif.StochasticRule.RuleParam> ruleParams = new List<Oisif.StochasticRule.RuleParam>();
             ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.6f, ">G[+F][F][-F]"));
             ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.05f, ">G[+F]"));
             ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.05f, ">G[-F]"));
@@ -39,33 +25,32 @@ public class Test : MonoBehaviour
             _systemDatas.Add(systemData);
         }
 
-        // TODO Remove the last param, line length must be handled ONLY by the sign ">"
         {
-            Oisif.LSystemData systemData = new Oisif.LSystemData("Y", new Oisif.SimpleValue(40.0f), 1.3f);
+            Oisif.LSystemData systemData = new Oisif.LSystemData("Y", new Oisif.SimpleValue(40.0f), 1.1f);
             List<Oisif.StochasticRule.RuleParam> ruleParams = new List<Oisif.StochasticRule.RuleParam>();
             ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.5f, ">G[+F][-F]"));
-            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.2f, ">G[+F]"));
-            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.3f, "GC"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.15f, ">G[+F]"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.15f, ">G[-F]"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.2f, "GC"));
             systemData.AddRule(new Oisif.StochasticRule('F', ruleParams));
             systemData.AddRule(new Oisif.SimpleRule('Y', ">G[+F][-F]"));
             _systemDatas.Add(systemData);
         }
 
         {
-            Oisif.LSystemData systemData = new Oisif.LSystemData("FX", new Oisif.SimpleValue(40.0f), 1.5f);
+            Oisif.LSystemData systemData = new Oisif.LSystemData("FX", new Oisif.SimpleValue(40.0f), 1.1f);
             systemData.AddRule(new Oisif.SimpleRule('X', ">[-FX]+FX"));
             _systemDatas.Add(systemData);
         }
 
         {
-            Oisif.LSystemData systemData = new Oisif.LSystemData("F", new Oisif.SimpleValue(45.0f), 1.5f);
-            systemData.AddRule(new Oisif.SimpleRule('F', ">G[+F][-F]"));
+            Oisif.LSystemData systemData = new Oisif.LSystemData("F", new Oisif.SimpleValue(22.5f), 2.3f);
+            systemData.AddRule(new Oisif.SimpleRule('F', "GG+[+F-F-F]-[-F+F+F]"));
             _systemDatas.Add(systemData);
         }
 
         _system = new Oisif.LSystem();
         _system.Data = _systemDatas[_currentIndex];
-        
         _interpretor = new Oisif.DrawerInterpretor();
     }
 
