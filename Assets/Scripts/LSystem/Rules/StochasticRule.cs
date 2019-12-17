@@ -31,7 +31,6 @@ public class StochasticRule : ARule
         {
             total += param.Probability;
         }
-        Assert.IsTrue(total.Equals(1f), "StochasticRule: Probabilities sum must be 1.");
     }
 
     public override string Evaluate(LSystem.Token token)
