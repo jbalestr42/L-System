@@ -62,6 +62,12 @@ public class LSystemInterpretor
 
         system.ForEach(signAction);
     }
+
+    public virtual bool IsDoneExecuting()
+    {
+        return true;
+    }
+
 }
 
 }

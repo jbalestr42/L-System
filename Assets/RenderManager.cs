@@ -53,6 +53,62 @@ public class RenderManager : MonoBehaviour
         }
     }
 
+    class ShapeData<T> where T : IInterpolableShape
+    {
+        public bool IsDone { get; private set; }
+        private SortedDictionary<int, List<T>> _shapes;
+        private float _duration = 0.2f;
+
+        public ShapeData()
+        {
+            _shapes = new SortedDictionary<int, List<T>>();
+            IsDone = true;
+        }
+
+        public void Add(int order, T newShape)
+        {
+            if (!_shapes.ContainsKey(order))
+            {
+                _shapes[order] = new List<T>();
+            }
+            _shapes[order].Add(newShape);
+        }
+
+        public void Clear()
+        {
+            if (_shapes != null)
+            {
+                foreach (KeyValuePair<int, List<T>> pair in _shapes)
+                {
+                    foreach (T shape in pair.Value)
+                    {
+                        shape.Destroy();
+                    }
+                }
+                _shapes.Clear();
+            }
+        }
+
+        public IEnumerator ExpandCor()
+        {
+            IsDone = false;
+            foreach (KeyValuePair<int, List<T>> pair in _shapes)
+            {
+                float timer = 0f;
+                while (timer < _duration)
+                {
+                    timer += Time.deltaTime;
+                    foreach (T shape in pair.Value)
+                    {
+                        shape.Update(Mathf.Min(timer, _duration) / _duration);
+                    }
+                    yield return new WaitForSeconds(Time.deltaTime);
+                }
+            }
+            IsDone = true;
+        }
+    }
+
     [SerializeField]
     private GameObject _linePrefab = null;
 
@@ -60,15 +116,16 @@ public class RenderManager : MonoBehaviour
     private GameObject _circlePrefab = null;
 
     private GameObject _root;
-    private SortedDictionary<int, List<InterpolableLine>> _interpolatedLines;
-    private SortedDictionary<int, List<InterpolableCircle>> _interpolatedCircles;
+
+    private ShapeData<InterpolableLine> _interpolatedLines;
+    private ShapeData<InterpolableCircle> _interpolatedCircles;
 
     void Start()
     {
         _root = new GameObject();
         _root.name = "RenderManager";
-        _interpolatedLines = new SortedDictionary<int, List<InterpolableLine>>();
-        _interpolatedCircles = new SortedDictionary<int, List<InterpolableCircle>>();
+        _interpolatedLines = new ShapeData<InterpolableLine>();
+        _interpolatedCircles = new ShapeData<InterpolableCircle>();
     }
     
     public void CreateInterpolableCircle(int order, Vector3 centerStart, Vector3 centerEnd, float sizeStart, float sizeEnd)
@@ -86,11 +143,7 @@ public class RenderManager : MonoBehaviour
         interpolatedCircle.SizeStart = sizeStart;
         interpolatedCircle.SizeEnd = sizeEnd;
 
-        if (!_interpolatedCircles.ContainsKey(order))
-        {
-            _interpolatedCircles[order] = new List<InterpolableCircle>();
-        }
-        _interpolatedCircles[order].Add(interpolatedCircle);
+        _interpolatedCircles.Add(order, interpolatedCircle);
     }
     
     public void CreateInterpolableLine(int order, Vector3 pointStartA, Vector3 pointEndA, Vector3 pointStartB, Vector3 pointEndB)
@@ -108,57 +161,29 @@ public class RenderManager : MonoBehaviour
         interpolatedLine.PointEndB = pointEndB;
         interpolatedLine.Line = line;
         
-        if (!_interpolatedLines.ContainsKey(order))
-        {
-            _interpolatedLines[order] = new List<InterpolableLine>();
-        }
-        _interpolatedLines[order].Add(interpolatedLine);
+        _interpolatedLines.Add(order, interpolatedLine);
     }
 
     public void Expand()
     {
-        StartCoroutine(ExpandCor(_interpolatedLines));
-        StartCoroutine(ExpandCor(_interpolatedCircles));
+        StartCoroutine(_interpolatedCircles.ExpandCor());
+        StartCoroutine(_interpolatedLines.ExpandCor());
     }
 
     public void Clear()
     {
-        Clear(_interpolatedLines);
-        Clear(_interpolatedCircles);
-    }
-    
-    IEnumerator ExpandCor<T>(SortedDictionary<int, List<T>> shapes) where T : IInterpolableShape
-    {
-        float duration = 0.2f;
-
-        foreach (KeyValuePair<int, List<T>> pair in shapes)
+        if (_interpolatedLines != null)
         {
-            float timer = 0f;
-            while (timer < duration)
-            {
-                timer += Time.deltaTime;
-                foreach (T shape in pair.Value)
-                {
-                    shape.Update(Mathf.Min(timer, duration) / duration);
-                }
-                yield return new WaitForSeconds(Time.deltaTime);
-            }
+            _interpolatedLines.Clear();
+        }
+        if (_interpolatedCircles != null)
+        {
+            _interpolatedCircles.Clear();
         }
     }
 
-    void Clear<T>(SortedDictionary<int, List<T>> shapes) where T : IInterpolableShape
+    public bool IsDoneExpanding()
     {
-    
-        if (shapes != null)
-        {
-            foreach (KeyValuePair<int, List<T>> pair in shapes)
-            {
-                foreach (T shape in pair.Value)
-                {
-                    shape.Destroy();
-                }
-            }
-            shapes.Clear();
-        }
+        return _interpolatedCircles.IsDone && _interpolatedLines.IsDone;
     }
 }
