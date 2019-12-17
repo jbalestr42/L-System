@@ -42,6 +42,7 @@ public class DrawerInterpretor : LSystemInterpretor
         AddAction('Y', true, DrawLine); // TODO add a way to add multiple sign doing the same action
         AddAction('G', true, DrawLine);
         AddAction('F', true, DrawLine);
+        AddAction('E', true, DrawLine);
         AddAction('C', false, DrawCircle);
         AddAction('f', true, Move);
         AddAction('[', false, SaveDrawState);
@@ -53,12 +54,12 @@ public class DrawerInterpretor : LSystemInterpretor
     
     void IncreaseAngle(LSystem.Token token, LSystem system)
     {
-        _currentAngle += system.Data.Angle;
+        _currentAngle += system.Data.Angle.Value();
     }
 
     void DecreaseAngle(LSystem.Token token, LSystem system)
     {
-        _currentAngle -= system.Data.Angle;
+        _currentAngle -= system.Data.Angle.Value();
     }
     
     void SaveDrawState(LSystem.Token token, LSystem system)
@@ -183,6 +184,11 @@ public class DrawerInterpretor : LSystemInterpretor
     {
         base.Execute(system);
         _RenderManager.Expand();
+    }
+
+    public override bool IsDoneExecuting()
+    {
+        return _RenderManager.IsDoneExpanding();
     }
 }
 

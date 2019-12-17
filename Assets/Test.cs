@@ -4,90 +4,99 @@ using UnityEngine;
 
 public class Test : MonoBehaviour
 {
-    List<Oisif.LSystemData> _systemData;
+    List<Oisif.LSystemData> _systemDatas;
     Oisif.LSystem _system;
     Oisif.DrawerInterpretor _interpretor;
     int _currentIndex = 0;
 
     void Start()
     {
-        _systemData = new List<Oisif.LSystemData>();
+        _systemDatas = new List<Oisif.LSystemData>();
         
-        Oisif.LSystemData systemData;
+        {
+            Oisif.LSystemData systemData = new Oisif.LSystemData("Y", new Oisif.RangeValue(35.0f, 45.0f), 1.1f);
+            List<Oisif.StochasticRule.RuleParam> ruleParams = new List<Oisif.StochasticRule.RuleParam>();
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.2f, ">G[+F][F]"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.2f, ">G[F][-F]"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.2f, ">G[+F][F][-F]"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.05f, ">G[+F]"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.05f, ">G[-F]"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.3f, "GC"));
+            systemData.AddRule(new Oisif.StochasticRule('F', ruleParams));
+            systemData.AddRule(new Oisif.SimpleRule('Y', ">G[+F][Y][-F]"));
+            _systemDatas.Add(systemData);
+        }
         
-        // TODO Remove the last param, line length must be handled by the sign ">"
-        systemData = new Oisif.LSystemData("Y", 40f, 1.3f);
-        List<Oisif.StochasticRule.RuleParam> ruleParams = new List<Oisif.StochasticRule.RuleParam>();
-        ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.5f, ">G[+F][-F]"));
-        ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.2f, ">G[+F]"));
-        ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.3f, "GC"));
-        systemData.AddRule(new Oisif.StochasticRule('F', ruleParams));
-        systemData.AddRule(new Oisif.SimpleRule('Y', ">G[+F][-F]"));
-        _systemData.Add(systemData);
-        
-        // TODO this one is still broken because the rule start with a single F
-        //systemData = new Oisif.LSystemData("FX", 40f, 1.5f);
-        //systemData.AddRule(new Oisif.SimpleRule('X', ">F[-FX][+FX]"));
-        //_systemData.Add(systemData);
+        {
+            Oisif.LSystemData systemData = new Oisif.LSystemData("Y", new Oisif.RangeValue(35.0f, 45.0f), 1.1f);
+            List<Oisif.StochasticRule.RuleParam> ruleParams = new List<Oisif.StochasticRule.RuleParam>();
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.6f, ">G[+F][F][-F]"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.05f, ">G[+F]"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.05f, ">G[-F]"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.3f, "GC"));
+            systemData.AddRule(new Oisif.StochasticRule('F', ruleParams));
+            systemData.AddRule(new Oisif.SimpleRule('Y', ">G[+F][Y][-F]"));
+            _systemDatas.Add(systemData);
+        }
 
-        systemData = new Oisif.LSystemData("FX", 40f, 1.5f);
-        systemData.AddRule(new Oisif.SimpleRule('X', ">[-FX]+FX"));
-        _systemData.Add(systemData);
-        
-        systemData = new Oisif.LSystemData("F", 45f, 1.5f);
-        systemData.AddRule(new Oisif.SimpleRule('F', ">G[+F][-F]"));
-        _systemData.Add(systemData);
-        
-        // Both need to be fixed
-        systemData = new Oisif.LSystemData("F", 22.5f, 2f);
-        systemData.AddRule(new Oisif.SimpleRule('F', "FF+[+F-F-F]-[-F+F+F]"));
-        _systemData.Add(systemData);
-        
-        systemData = new Oisif.LSystemData("F", 22.5f, 2f);
-        systemData.AddRule(new Oisif.SimpleRule('F', "GG+[+F-F-F]-[-F+F+F]"));
-        _systemData.Add(systemData);
+        // TODO Remove the last param, line length must be handled ONLY by the sign ">"
+        {
+            Oisif.LSystemData systemData = new Oisif.LSystemData("Y", new Oisif.SimpleValue(40.0f), 1.3f);
+            List<Oisif.StochasticRule.RuleParam> ruleParams = new List<Oisif.StochasticRule.RuleParam>();
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.5f, ">G[+F][-F]"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.2f, ">G[+F]"));
+            ruleParams.Add(new Oisif.StochasticRule.RuleParam(0.3f, "GC"));
+            systemData.AddRule(new Oisif.StochasticRule('F', ruleParams));
+            systemData.AddRule(new Oisif.SimpleRule('Y', ">G[+F][-F]"));
+            _systemDatas.Add(systemData);
+        }
+
+        {
+            Oisif.LSystemData systemData = new Oisif.LSystemData("FX", new Oisif.SimpleValue(40.0f), 1.5f);
+            systemData.AddRule(new Oisif.SimpleRule('X', ">[-FX]+FX"));
+            _systemDatas.Add(systemData);
+        }
+
+        {
+            Oisif.LSystemData systemData = new Oisif.LSystemData("F", new Oisif.SimpleValue(45.0f), 1.5f);
+            systemData.AddRule(new Oisif.SimpleRule('F', ">G[+F][-F]"));
+            _systemDatas.Add(systemData);
+        }
 
         _system = new Oisif.LSystem();
-        _system.Data = _systemData[_currentIndex];
+        _system.Data = _systemDatas[_currentIndex];
         
         _interpretor = new Oisif.DrawerInterpretor();
     }
 
     void Update()
     {
+        if (_interpretor != null && !_interpretor.IsDoneExecuting())
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            _currentIndex = _currentIndex > 0 ? _currentIndex - 1 : _systemData.Count - 1;
-            _system.Data = _systemData[_currentIndex];
+            _currentIndex = _currentIndex > 0 ? _currentIndex - 1 : _systemDatas.Count - 1;
+            _system.Data = _systemDatas[_currentIndex];
             _interpretor.Reset();
         }
         
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            _currentIndex = _currentIndex < _systemData.Count - 1 ? _currentIndex + 1 : 0;
-            _system.Data = _systemData[_currentIndex];
+            _currentIndex = _currentIndex < _systemDatas.Count - 1 ? _currentIndex + 1 : 0;
+            _system.Data = _systemDatas[_currentIndex];
             _interpretor.Reset();
         }
-        
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            _system.NextGeneration();
-            _system.DisplayCurrentState();
-        }
-        
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            _interpretor.Reset();
-            _interpretor.Execute(_system);
-        }
-        
+
         if (Input.GetKeyDown(KeyCode.R))
         {
             _system.Reset();
             _interpretor.Reset();
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKey(KeyCode.Space))
         {
             if (_system.Depth() >= 0)
             {
