@@ -118,13 +118,13 @@ public class Test : MonoBehaviour
         {
             GUIStyle style = new GUIStyle();
             style.normal.textColor = Color.white;
-            style.fontSize = 40;
+            style.fontSize = 20;
 
-            GUI.Label(new Rect(10, Screen.height - 260, 200, 60), "Space to grow", style);
-            GUI.Label(new Rect(10, Screen.height - 210, 200, 60), "R to reset", style);
-            GUI.Label(new Rect(10, Screen.height - 160, 200, 60), "H to hide the text", style);
-            GUI.Label(new Rect(10, Screen.height - 110, 200, 60), "Arrows left/right to change tree", style);
-            GUI.Label(new Rect(10, Screen.height - 60, 200, 60), "Example " + (_currentIndex + 1) + "/" + _systemDatas.Count + " -> " + _systemDatas[_currentIndex].Text, style);
+            GUI.Label(new Rect(10, Screen.height - 150, 200, 60), "Space to grow", style);
+            GUI.Label(new Rect(10, Screen.height - 120, 200, 60), "R to reset", style);
+            GUI.Label(new Rect(10, Screen.height - 90, 200, 60), "H to hide the text", style);
+            GUI.Label(new Rect(10, Screen.height - 60, 200, 60), "Arrows left/right to change tree", style);
+            GUI.Label(new Rect(10, Screen.height - 30, 200, 60), "Example " + (_currentIndex + 1) + "/" + _systemDatas.Count + " -> " + _systemDatas[_currentIndex].Text, style);
         }
     }
 }
